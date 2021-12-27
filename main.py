@@ -133,6 +133,15 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             terminate()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                player.rect.x -= 5
+            if event.key == pygame.K_RIGHT:
+                player.rect.x += 5
+            if event.key == pygame.K_UP:
+                player.rect.y -= 5
+            if event.key == pygame.K_DOWN:
+                player.rect.y += 5
     screen.fill(pygame.Color((84, 55, 64)))
     tiles_group.draw(screen)
     player_group.draw(screen)
