@@ -6,6 +6,7 @@ import pygame
 size = width, height = 700, 500
 screen = pygame.display.set_mode(size)
 player = None
+FPS = 5
 
 
 def terminate():
@@ -46,17 +47,30 @@ tile_images = {
     'wall': load_image('wall.jpg'),
     'floor': load_image('floor.png')
 }
-player_image = load_image('player_down.png')
+# player_image = load_image('player_down.png')
 
 tile_width = tile_height = 32
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y):
+    def __init__(self, sheet, columns, rows, x, y):
         super().__init__(player_group, all_sprites)
-        self.image = player_image
-        self.rect = self.image.get_rect().move(
-            tile_width * pos_x + 15, tile_height * pos_y + 5)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns, sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
 
 
 def generate_level(level):
@@ -69,7 +83,7 @@ def generate_level(level):
                 Tile('wall', x, y)
             elif level[y][x] == '@':
                 Tile('floor', x, y)
-                new_player = Player(x, y)
+                new_player = Player(load_image('player_right.png'), 4, 1, 35, 193)
     return new_player, x, y
 
 
@@ -114,6 +128,7 @@ def start_screen():
 
 pygame.init()
 start_screen()
+clock = pygame.time.Clock()
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -121,4 +136,6 @@ while True:
     screen.fill(pygame.Color((84, 55, 64)))
     tiles_group.draw(screen)
     player_group.draw(screen)
+    all_sprites.update()
+    clock.tick(FPS)
     pygame.display.flip()
