@@ -68,7 +68,8 @@ def generate_level(level):
             elif level[y][x] == '*':
                 Tile('wall', x, y)
             elif level[y][x] == '@':
-                Tile('empty', x, y)
+                Tile('floor', x, y)
+                new_player = Player(x, y)
     return new_player, x, y
 
 
