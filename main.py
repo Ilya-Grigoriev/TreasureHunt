@@ -41,7 +41,31 @@ def load_level(filename):
         terminate()
 
 
+def start_screen():
+    fon = pygame.transform.scale(load_image('start_screen.png'), size)
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 80)
+    string_rendered = font.render('Поиск', 1, pygame.Color('chocolate1'))
+    screen.blit(string_rendered, (165, 165))
+    string_rendered = font.render('сокровищ', 1, pygame.Color('chocolate1'))
+    screen.blit(string_rendered, (110, 215))
+    font = pygame.font.Font(None, 20)
+    string_rendered = font.render('Создатель игры:', 1, pygame.Color('chocolate1'))
+    screen.blit(string_rendered, (195, 395))
+    string_rendered = font.render('Григорьев Илья', 1, pygame.Color('chocolate1'))
+    screen.blit(string_rendered, (198, 415))
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or \
+                    event.type == pygame.MOUSEBUTTONDOWN:
+                return
+        pygame.display.flip()
+
+
 pygame.init()
+start_screen()
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
