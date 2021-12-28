@@ -129,6 +129,7 @@ def start_screen():
 pygame.init()
 start_screen()
 clock = pygame.time.Clock()
+cur_mod = 'r'
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -136,12 +137,32 @@ while True:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 player.rect.x -= 5
+                if cur_mod != 'l':
+                    player_2 = Player(load_image('player_left.png'), 4, 1, player.rect.x, player.rect.y)
+                    player.kill()
+                    player = player_2
+                    cur_mod = 'l'
             if event.key == pygame.K_RIGHT:
                 player.rect.x += 5
+                if cur_mod != 'r':
+                    player_2 = Player(load_image('player_right.png'), 4, 1, player.rect.x, player.rect.y)
+                    player.kill()
+                    player = player_2
+                    cur_mod = 'r'
             if event.key == pygame.K_UP:
                 player.rect.y -= 5
+                if cur_mod != 'u':
+                    player_2 = Player(load_image('player_up.png'), 4, 1, player.rect.x, player.rect.y)
+                    player.kill()
+                    player = player_2
+                    cur_mod = 'u'
             if event.key == pygame.K_DOWN:
                 player.rect.y += 5
+                if cur_mod != 'd':
+                    player_2 = Player(load_image('player_down.png'), 4, 1, player.rect.x, player.rect.y)
+                    player.kill()
+                    player = player_2
+                    cur_mod = 'd'
     screen.fill(pygame.Color((84, 55, 64)))
     tiles_group.draw(screen)
     player_group.draw(screen)
