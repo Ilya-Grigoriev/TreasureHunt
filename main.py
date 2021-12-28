@@ -31,20 +31,24 @@ def load_image(name, colorkey=None):
 
 
 all_sprites = pygame.sprite.Group()
+floor_group = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 
 
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
-        super().__init__(tiles_group, all_sprites)
+        if tile_type == 'floor':
+            super().__init__(floor_group, all_sprites)
+        else:
+            super().__init__(tiles_group, all_sprites)
         self.image = tile_images[tile_type]
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
 
 
 tile_images = {
-    'wall': load_image('wall.jpg'),
+    'wall': load_image('wall4.jpg'),
     'floor': load_image('floor.png')
 }
 # player_image = load_image('player_down.png')
@@ -83,7 +87,7 @@ def generate_level(level):
                 Tile('wall', x, y)
             elif level[y][x] == '@':
                 Tile('floor', x, y)
-                new_player = Player(load_image('player_right.png'), 4, 1, 35, 193)
+                new_player = Player(load_image('player_right2.png'), 4, 1, 35, 193)
     return new_player, x, y
 
 
@@ -137,32 +141,45 @@ while True:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 player.rect.x -= 5
-                if cur_mod != 'l':
-                    player_2 = Player(load_image('player_left.png'), 4, 1, player.rect.x, player.rect.y)
-                    player.kill()
-                    player = player_2
-                    cur_mod = 'l'
+                if not pygame.sprite.spritecollideany(player, tiles_group):
+                    if cur_mod != 'l':
+                        player_2 = Player(load_image('player_left2.png'), 4, 1, player.rect.x, player.rect.y)
+                        player.kill()
+                        player = player_2
+                        cur_mod = 'l'
+                else:
+                    player.rect.x += 5
             if event.key == pygame.K_RIGHT:
                 player.rect.x += 5
-                if cur_mod != 'r':
-                    player_2 = Player(load_image('player_right.png'), 4, 1, player.rect.x, player.rect.y)
-                    player.kill()
-                    player = player_2
-                    cur_mod = 'r'
+                if not pygame.sprite.spritecollideany(player, tiles_group):
+                    if cur_mod != 'r':
+                        player_2 = Player(load_image('player_right2.png'), 4, 1, player.rect.x, player.rect.y)
+                        player.kill()
+                        player = player_2
+                        cur_mod = 'r'
+                else:
+                    player.rect.x -= 5
             if event.key == pygame.K_UP:
+                # print(pygame.sprite.spritecollide(player, tiles_group, False))
                 player.rect.y -= 5
-                if cur_mod != 'u':
-                    player_2 = Player(load_image('player_up.png'), 4, 1, player.rect.x, player.rect.y)
-                    player.kill()
-                    player = player_2
-                    cur_mod = 'u'
+                if not pygame.sprite.spritecollideany(player, tiles_group):
+                    if cur_mod != 'u':
+                        player_2 = Player(load_image('player_up2.png'), 4, 1, player.rect.x, player.rect.y)
+                        player.kill()
+                        player = player_2
+                        cur_mod = 'u'
+                else:
+                    player.rect.y += 5
             if event.key == pygame.K_DOWN:
                 player.rect.y += 5
-                if cur_mod != 'd':
-                    player_2 = Player(load_image('player_down.png'), 4, 1, player.rect.x, player.rect.y)
-                    player.kill()
-                    player = player_2
-                    cur_mod = 'd'
+                if not pygame.sprite.spritecollideany(player, tiles_group):
+                    if cur_mod != 'd':
+                        player_2 = Player(load_image('player_down2.png'), 4, 1, player.rect.x, player.rect.y)
+                        player.kill()
+                        player = player_2
+                        cur_mod = 'd'
+                else:
+                    player.rect.y -= 5
     screen.fill(pygame.Color((84, 55, 64)))
     tiles_group.draw(screen)
     player_group.draw(screen)
