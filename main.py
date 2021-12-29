@@ -1,5 +1,6 @@
 import os
 import sys
+import threading
 
 import pygame
 
@@ -125,6 +126,8 @@ def load_level(filename):
 
 level = load_level('first_level.txt')
 player, level_x, level_y = generate_level(level)
+cur_mod = 'r'
+step = 4
 
 
 def start_screen():
@@ -150,11 +153,22 @@ def start_screen():
         pygame.display.flip()
 
 
+def check_mask(arr):
+    for i in arr:
+        if pygame.sprite.collide_mask(player, i):
+            potion_group.remove(i)
+            return True
+    return False
+
+
+def back():
+    global step
+    step = 4
+
+
 pygame.init()
 start_screen()
 clock = pygame.time.Clock()
-cur_mod = 'r'
-step = 4
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -162,11 +176,10 @@ while True:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 player.rect.x -= step
-                for i in list_potions:
-                    if pygame.sprite.collide_mask(player, i):
-                        potion_group.remove(i)
-                        step = 8
-                        break
+                if check_mask(list_potions):
+                    step = 8
+                    Timer = threading.Timer(15, back)
+                    Timer.start()
                 if not pygame.sprite.spritecollideany(player, wall_group):
                     if cur_mod != 'l':
                         player_2 = Player(load_image('player_left.png'), 4, 1, player.rect.x, player.rect.y)
@@ -177,11 +190,10 @@ while True:
                     player.rect.x += step
             if event.key == pygame.K_RIGHT:
                 player.rect.x += step
-                for i in list_potions:
-                    if pygame.sprite.collide_mask(player, i):
-                        potion_group.remove(i)
-                        step = 8
-                        break
+                if check_mask(list_potions):
+                    step = 8
+                    Timer = threading.Timer(15, back)
+                    Timer.start()
                 if not pygame.sprite.spritecollideany(player, wall_group):
                     if cur_mod != 'r':
                         player_2 = Player(load_image('player_right.png'), 4, 1, player.rect.x, player.rect.y)
@@ -193,11 +205,10 @@ while True:
             if event.key == pygame.K_UP:
                 # print(pygame.sprite.spritecollide(player, tiles_group, False))
                 player.rect.y -= step
-                for i in list_potions:
-                    if pygame.sprite.collide_mask(player, i):
-                        potion_group.remove(i)
-                        step = 8
-                        break
+                if check_mask(list_potions):
+                    step = 8
+                    Timer = threading.Timer(15, back)
+                    Timer.start()
                 if not pygame.sprite.spritecollideany(player, wall_group):
                     if cur_mod != 'u':
                         player_2 = Player(load_image('player_up.png'), 4, 1, player.rect.x, player.rect.y)
@@ -208,11 +219,10 @@ while True:
                     player.rect.y += step
             if event.key == pygame.K_DOWN:
                 player.rect.y += step
-                for i in list_potions:
-                    if pygame.sprite.collide_mask(player, i):
-                        potion_group.remove(i)
-                        step = 8
-                        break
+                if check_mask(list_potions):
+                    step = 8
+                    Timer = threading.Timer(15, back)
+                    Timer.start()
                 if not pygame.sprite.spritecollideany(player, wall_group):
                     if cur_mod != 'd':
                         player_2 = Player(load_image('player_down.png'), 4, 1, player.rect.x, player.rect.y)
