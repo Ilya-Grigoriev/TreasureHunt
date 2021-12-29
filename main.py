@@ -33,13 +33,26 @@ def load_image(name, colorkey=None):
 all_sprites = pygame.sprite.Group()
 floor_group = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()
+potion_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
+list_potions = []
+
+
+class Potion(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(potion_group, all_sprites)
+        self.image = texture_images['potion_speed']
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x, tile_height * pos_y)
+        self.mask = pygame.mask.from_surface(self.image)
 
 
 class Textures(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         if tile_type == 'floor':
             super().__init__(floor_group, all_sprites)
+        # elif tile_type == 'potion_speed':
+        #     super().__init__(potion_group, all_sprites)
         else:
             super().__init__(wall_group, all_sprites)
         self.image = texture_images[tile_type]
@@ -49,7 +62,8 @@ class Textures(pygame.sprite.Sprite):
 
 texture_images = {
     'wall': load_image('wall4.jpg'),
-    'floor': load_image('floor.png')
+    'floor': load_image('floor2.png'),
+    'potion_speed': load_image('potion_speed2.png')
 }
 
 # player_image = load_image('player_down.png')
@@ -65,6 +79,7 @@ class Player(pygame.sprite.Sprite):
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(x, y)
+        self.mask = pygame.mask.from_surface(self.image)
 
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns, sheet.get_height() // rows)
@@ -84,11 +99,15 @@ def generate_level(level):
         for x in range(len(level[y])):
             if level[y][x] == '.':
                 Textures('floor', x, y)
-            elif level[y][x] == '*':
+            if level[y][x] == '*':
                 Textures('wall', x, y)
             elif level[y][x] == '@':
                 Textures('floor', x, y)
-                new_player = Player(load_image('player_right2.png'), 4, 1, 35, 193)
+                new_player = Player(load_image('player_right.png'), 4, 1, 35, 193)
+            elif level[y][x] == 's':
+                Textures('floor', x, y)
+                potion = Potion(x, y)
+                list_potions.append(potion)
     return new_player, x, y
 
 
@@ -135,54 +154,77 @@ pygame.init()
 start_screen()
 clock = pygame.time.Clock()
 cur_mod = 'r'
+step = 4
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             terminate()
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
-                player.rect.x -= 5
+                player.rect.x -= step
+                for i in list_potions:
+                    if pygame.sprite.collide_mask(player, i):
+                        potion_group.remove(i)
+                        step = 8
+                        break
                 if not pygame.sprite.spritecollideany(player, wall_group):
                     if cur_mod != 'l':
-                        player_2 = Player(load_image('player_left2.png'), 4, 1, player.rect.x, player.rect.y)
+                        player_2 = Player(load_image('player_left.png'), 4, 1, player.rect.x, player.rect.y)
                         player.kill()
                         player = player_2
                         cur_mod = 'l'
                 else:
-                    player.rect.x += 5
+                    player.rect.x += step
             if event.key == pygame.K_RIGHT:
-                player.rect.x += 5
+                player.rect.x += step
+                for i in list_potions:
+                    if pygame.sprite.collide_mask(player, i):
+                        potion_group.remove(i)
+                        step = 8
+                        break
                 if not pygame.sprite.spritecollideany(player, wall_group):
                     if cur_mod != 'r':
-                        player_2 = Player(load_image('player_right2.png'), 4, 1, player.rect.x, player.rect.y)
+                        player_2 = Player(load_image('player_right.png'), 4, 1, player.rect.x, player.rect.y)
                         player.kill()
                         player = player_2
                         cur_mod = 'r'
                 else:
-                    player.rect.x -= 5
+                    player.rect.x -= step
             if event.key == pygame.K_UP:
                 # print(pygame.sprite.spritecollide(player, tiles_group, False))
-                player.rect.y -= 5
+                player.rect.y -= step
+                for i in list_potions:
+                    if pygame.sprite.collide_mask(player, i):
+                        potion_group.remove(i)
+                        step = 8
+                        break
                 if not pygame.sprite.spritecollideany(player, wall_group):
                     if cur_mod != 'u':
-                        player_2 = Player(load_image('player_up2.png'), 4, 1, player.rect.x, player.rect.y)
+                        player_2 = Player(load_image('player_up.png'), 4, 1, player.rect.x, player.rect.y)
                         player.kill()
                         player = player_2
                         cur_mod = 'u'
                 else:
-                    player.rect.y += 5
+                    player.rect.y += step
             if event.key == pygame.K_DOWN:
-                player.rect.y += 5
+                player.rect.y += step
+                for i in list_potions:
+                    if pygame.sprite.collide_mask(player, i):
+                        potion_group.remove(i)
+                        step = 8
+                        break
                 if not pygame.sprite.spritecollideany(player, wall_group):
                     if cur_mod != 'd':
-                        player_2 = Player(load_image('player_down2.png'), 4, 1, player.rect.x, player.rect.y)
+                        player_2 = Player(load_image('player_down.png'), 4, 1, player.rect.x, player.rect.y)
                         player.kill()
                         player = player_2
                         cur_mod = 'd'
                 else:
-                    player.rect.y -= 5
+                    player.rect.y -= step
     screen.fill(pygame.Color((84, 55, 64)))
     wall_group.draw(screen)
+    floor_group.draw(screen)
+    potion_group.draw(screen)
     player_group.draw(screen)
     all_sprites.update()
     clock.tick(FPS)
