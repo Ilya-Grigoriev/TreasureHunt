@@ -52,8 +52,6 @@ class Textures(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         if tile_type == 'floor':
             super().__init__(floor_group, all_sprites)
-        # elif tile_type == 'potion_speed':
-        #     super().__init__(potion_group, all_sprites)
         else:
             super().__init__(wall_group, all_sprites)
         self.image = texture_images[tile_type]
