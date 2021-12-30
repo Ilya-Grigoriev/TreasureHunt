@@ -37,14 +37,17 @@ wall_group = pygame.sprite.Group()
 potion_group = pygame.sprite.Group()
 thorn_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
+stair_group = pygame.sprite.Group()
 list_potions = []
 list_thorns = []
+stair = None
 
 texture_images = {
     'wall': load_image('wall4.jpg'),
     'floor': load_image('floor2.png'),
     'potion_speed': load_image('potion_speed2.png'),
-    'thorns': load_image('thorns.jpg')
+    'thorns': load_image('thorns.jpg'),
+    'stair': load_image('stair.jpg')
 }
 
 
@@ -75,6 +78,15 @@ class Potion(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(potion_group, all_sprites)
         self.image = texture_images['potion_speed']
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x, tile_height * pos_y)
+        self.mask = pygame.mask.from_surface(self.image)
+
+
+class Stair(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(stair_group, all_sprites)
+        self.image = texture_images['stair']
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
         self.mask = pygame.mask.from_surface(self.image)
@@ -123,6 +135,7 @@ class Player(pygame.sprite.Sprite):
 
 
 def generate_level(level):
+    global stair
     new_player, x, y = None, None, None
     for y in range(len(level)):
         for x in range(len(level[y])):
@@ -141,6 +154,9 @@ def generate_level(level):
                 Textures('floor', x, y)
                 thorn = Thorn(load_image('thorns.jpg'), 4, 1, x * 35, y * 34)
                 list_thorns.append(thorn)
+            elif level[y][x] == 'u':
+                Textures('floor', x, y)
+                stair = Stair(x, y)
     return new_player, x, y
 
 
@@ -159,7 +175,7 @@ def load_level(filename):
 level = load_level('first_level.txt')
 player, level_x, level_y = generate_level(level)
 cur_mod = 'r'
-step = 4
+step = 8
 health = 100
 
 
@@ -261,12 +277,15 @@ while True:
     if check_mask(list_thorns):
         health -= 1
         player.health = health
+    if pygame.sprite.collide_mask(player, stair):
+        print('here')
     screen.fill(pygame.Color((84, 55, 64)))
     wall_group.draw(screen)
     floor_group.draw(screen)
     potion_group.draw(screen)
     thorn_group.draw(screen)
     player_group.draw(screen)
+    stair_group.draw(screen)
     player.screen = screen
     all_sprites.update()
     font = pygame.font.Font(None, 15)
