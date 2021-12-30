@@ -99,7 +99,6 @@ class Player(pygame.sprite.Sprite):
         self.screen.blit(string_rendered, (self.rect.x + 5, self.rect.y - 10))
 
 
-
 def generate_level(level):
     new_player, x, y = None, None, None
     for y in range(len(level)):
@@ -145,7 +144,7 @@ def start_screen():
     string_rendered = font.render('сокровищ', 1, pygame.Color('chocolate1'))
     screen.blit(string_rendered, (210, 215))
     font = pygame.font.Font(None, 20)
-    string_rendered = font.render('Голубой флакон - зелье скорости', 1, pygame.Color('chocolate1'))
+    string_rendered = font.render('Голубой флакон - зелье скорости на 15 секунд', 1, pygame.Color('chocolate1'))
     screen.blit(string_rendered, (75, 395))
     string_rendered = font.render('Создатель игры:', 1, pygame.Color('chocolate1'))
     screen.blit(string_rendered, (515, 395))
