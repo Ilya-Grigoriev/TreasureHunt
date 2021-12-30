@@ -139,10 +139,12 @@ def start_screen():
     string_rendered = font.render('сокровищ', 1, pygame.Color('chocolate1'))
     screen.blit(string_rendered, (210, 215))
     font = pygame.font.Font(None, 20)
+    string_rendered = font.render('Голубой флакон - зелье скорости', 1, pygame.Color('chocolate1'))
+    screen.blit(string_rendered, (75, 395))
     string_rendered = font.render('Создатель игры:', 1, pygame.Color('chocolate1'))
-    screen.blit(string_rendered, (295, 395))
+    screen.blit(string_rendered, (515, 395))
     string_rendered = font.render('Григорьев Илья', 1, pygame.Color('chocolate1'))
-    screen.blit(string_rendered, (298, 415))
+    screen.blit(string_rendered, (518, 415))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
