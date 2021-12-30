@@ -35,8 +35,40 @@ all_sprites = pygame.sprite.Group()
 floor_group = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()
 potion_group = pygame.sprite.Group()
+thorn_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 list_potions = []
+list_thorns = []
+
+texture_images = {
+    'wall': load_image('wall4.jpg'),
+    'floor': load_image('floor2.png'),
+    'potion_speed': load_image('potion_speed2.png'),
+    'thorns': load_image('thorns.jpg')
+}
+
+
+class Thorn(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y):
+        super().__init__(thorn_group, all_sprites)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.screen = None
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns, sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
 
 
 class Potion(pygame.sprite.Sprite):
@@ -60,12 +92,6 @@ class Textures(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
 
-
-texture_images = {
-    'wall': load_image('wall4.jpg'),
-    'floor': load_image('floor2.png'),
-    'potion_speed': load_image('potion_speed2.png')
-}
 
 # player_image = load_image('player_down.png')
 
@@ -94,9 +120,6 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
-        font = pygame.font.Font(None, 15)
-        string_rendered = font.render(str(self.health), 1, pygame.Color('black'))
-        self.screen.blit(string_rendered, (self.rect.x + 5, self.rect.y - 10))
 
 
 def generate_level(level):
@@ -109,11 +132,15 @@ def generate_level(level):
                 Textures('wall', x, y)
             elif level[y][x] == '@':
                 Textures('floor', x, y)
-                new_player = Player(load_image('player_right.png'), 4, 1, 35, 193)
+                new_player = Player(load_image('player_right.png'), 4, 1, 35, 34)
             elif level[y][x] == 's':
                 Textures('floor', x, y)
                 potion = Potion(x, y)
                 list_potions.append(potion)
+            elif level[y][x] == 't':
+                Textures('floor', x, y)
+                thorn = Thorn(load_image('thorns.jpg'), 4, 1, x * 35, y * 34)
+                list_thorns.append(thorn)
     return new_player, x, y
 
 
@@ -133,6 +160,7 @@ level = load_level('first_level.txt')
 player, level_x, level_y = generate_level(level)
 cur_mod = 'r'
 step = 4
+health = 100
 
 
 def start_screen():
@@ -183,67 +211,66 @@ while True:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 player.rect.x -= step
-                if check_mask(list_potions):
-                    step = 8
-                    Timer = threading.Timer(15, back)
-                    Timer.start()
                 if not pygame.sprite.spritecollideany(player, wall_group):
                     if cur_mod != 'l':
                         player_2 = Player(load_image('player_left.png'), 4, 1, player.rect.x, player.rect.y)
                         player.kill()
                         player = player_2
                         cur_mod = 'l'
+                        player.health = health
                 else:
                     player.rect.x += step
             if event.key == pygame.K_RIGHT:
                 player.rect.x += step
-                if check_mask(list_potions):
-                    step = 8
-                    Timer = threading.Timer(15, back)
-                    Timer.start()
                 if not pygame.sprite.spritecollideany(player, wall_group):
                     if cur_mod != 'r':
                         player_2 = Player(load_image('player_right.png'), 4, 1, player.rect.x, player.rect.y)
                         player.kill()
                         player = player_2
                         cur_mod = 'r'
+                        player.health = health
                 else:
                     player.rect.x -= step
             if event.key == pygame.K_UP:
                 # print(pygame.sprite.spritecollide(player, tiles_group, False))
                 player.rect.y -= step
-                if check_mask(list_potions):
-                    step = 8
-                    Timer = threading.Timer(15, back)
-                    Timer.start()
                 if not pygame.sprite.spritecollideany(player, wall_group):
                     if cur_mod != 'u':
                         player_2 = Player(load_image('player_up.png'), 4, 1, player.rect.x, player.rect.y)
                         player.kill()
                         player = player_2
                         cur_mod = 'u'
+                        player.health = health
                 else:
                     player.rect.y += step
             if event.key == pygame.K_DOWN:
                 player.rect.y += step
-                if check_mask(list_potions):
-                    step = 8
-                    Timer = threading.Timer(15, back)
-                    Timer.start()
                 if not pygame.sprite.spritecollideany(player, wall_group):
                     if cur_mod != 'd':
                         player_2 = Player(load_image('player_down.png'), 4, 1, player.rect.x, player.rect.y)
                         player.kill()
                         player = player_2
                         cur_mod = 'd'
+                        player.health = health
                 else:
                     player.rect.y -= step
+    if check_mask(list_potions):
+        step = 8
+        Timer = threading.Timer(15, back)
+        Timer.start()
+    if check_mask(list_thorns):
+        health -= 1
+        player.health = health
     screen.fill(pygame.Color((84, 55, 64)))
     wall_group.draw(screen)
     floor_group.draw(screen)
     potion_group.draw(screen)
+    thorn_group.draw(screen)
     player_group.draw(screen)
     player.screen = screen
     all_sprites.update()
+    font = pygame.font.Font(None, 15)
+    string_rendered = font.render(str(player.health), 1, pygame.Color('black'))
+    screen.blit(string_rendered, (player.rect.x + 5, player.rect.y - 10))
     clock.tick(FPS)
     pygame.display.flip()
