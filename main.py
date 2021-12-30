@@ -75,12 +75,14 @@ tile_width = tile_height = 32
 class Player(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(player_group, all_sprites)
+        self.health = 100
         self.frames = []
         self.cut_sheet(sheet, columns, rows)
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(x, y)
         self.mask = pygame.mask.from_surface(self.image)
+        self.screen = None
 
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns, sheet.get_height() // rows)
@@ -92,6 +94,10 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
+        font = pygame.font.Font(None, 15)
+        string_rendered = font.render(str(self.health), 1, pygame.Color('black'))
+        self.screen.blit(string_rendered, (self.rect.x + 5, self.rect.y - 10))
+
 
 
 def generate_level(level):
@@ -238,6 +244,7 @@ while True:
     floor_group.draw(screen)
     potion_group.draw(screen)
     player_group.draw(screen)
+    player.screen = screen
     all_sprites.update()
     clock.tick(FPS)
     pygame.display.flip()
