@@ -279,7 +279,7 @@ while True:
         player.health = health
     if pygame.sprite.collide_mask(player, stair):
         print('here')
-    screen.fill(pygame.Color((84, 55, 64)))
+    # screen.fill(pygame.Color((84, 55, 64)))
     wall_group.draw(screen)
     floor_group.draw(screen)
     potion_group.draw(screen)
