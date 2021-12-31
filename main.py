@@ -32,15 +32,16 @@ def load_image(name, colorkey=None):
 
 
 all_sprites = pygame.sprite.Group()
+floor_group = pygame.sprite.Group()
 texture_group = pygame.sprite.Group()
-wall_group = pygame.sprite.Group()
 potion_group = pygame.sprite.Group()
 thorn_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 stair_group = pygame.sprite.Group()
-hatch_group = pygame.sprite.Group()
+door_group = pygame.sprite.Group()
 list_potions = []
 list_thorns = []
+list_doors = []
 stair = None
 
 texture_images = {
@@ -49,7 +50,8 @@ texture_images = {
     'potion_speed': load_image('potion_speed2.png'),
     'thorns': load_image('thorns.jpg'),
     'stair': load_image('stair.jpg'),
-    'hatch': load_image('hatch.jpg')
+    'hatch': load_image('hatch.jpg'),
+    'door': load_image('door_closed.jpg')
 }
 
 
@@ -94,13 +96,21 @@ class Stair(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
+class Door(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(door_group, all_sprites)
+        self.image = texture_images['door']
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x, tile_height * pos_y)
+        self.mask = pygame.mask.from_surface(self.image)
+
 
 class Textures(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         if tile_type in 'floor':
-            super().__init__(texture_group, all_sprites)
+            super().__init__(floor_group, all_sprites)
         else:
-            super().__init__(wall_group, all_sprites)
+            super().__init__(texture_group, all_sprites)
         self.image = texture_images[tile_type]
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
@@ -161,6 +171,9 @@ def generate_level(level):
             elif level[y][x] == 'h':
                 Textures('floor', x, y)
                 Textures('hatch', x, y)
+            elif level[y][x] == 'd':
+                Textures('floor', x + 2, y)
+                Door(x, y)
     return new_player, x, y
 
 
@@ -231,7 +244,7 @@ while True:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 player.rect.x -= step
-                if not pygame.sprite.spritecollideany(player, wall_group):
+                if not pygame.sprite.spritecollideany(player, texture_group):
                     if cur_mod != 'l':
                         player_2 = Player(load_image('player_left.png'), 4, 1, player.rect.x, player.rect.y)
                         player.kill()
@@ -242,7 +255,7 @@ while True:
                     player.rect.x += step
             if event.key == pygame.K_RIGHT:
                 player.rect.x += step
-                if not pygame.sprite.spritecollideany(player, wall_group):
+                if not pygame.sprite.spritecollideany(player, texture_group):
                     if cur_mod != 'r':
                         player_2 = Player(load_image('player_right.png'), 4, 1, player.rect.x, player.rect.y)
                         player.kill()
@@ -254,7 +267,7 @@ while True:
             if event.key == pygame.K_UP:
                 # print(pygame.sprite.spritecollide(player, tiles_group, False))
                 player.rect.y -= step
-                if not pygame.sprite.spritecollideany(player, wall_group):
+                if not pygame.sprite.spritecollideany(player, texture_group):
                     if cur_mod != 'u':
                         player_2 = Player(load_image('player_up.png'), 4, 1, player.rect.x, player.rect.y)
                         player.kill()
@@ -265,7 +278,7 @@ while True:
                     player.rect.y += step
             if event.key == pygame.K_DOWN:
                 player.rect.y += step
-                if not pygame.sprite.spritecollideany(player, wall_group):
+                if not pygame.sprite.spritecollideany(player, texture_group):
                     if cur_mod != 'd':
                         player_2 = Player(load_image('player_down.png'), 4, 1, player.rect.x, player.rect.y)
                         player.kill()
@@ -286,19 +299,20 @@ while True:
         player.kill()
         potion_group.clear(screen, pygame.Surface(size))
         stair_group.clear(screen, pygame.Surface(size))
-        wall_group.clear(screen, pygame.Surface(size))
+        texture_group.clear(screen, pygame.Surface(size))
         texture_group.clear(screen, pygame.Surface(size))
         thorn_group.clear(screen, pygame.Surface(size))
         list_potions = []
         list_thorns = []
         level = load_level('second_level.txt')
         player, level_x, level_y = generate_level(level)
+    floor_group.draw(screen)
     texture_group.draw(screen)
-    wall_group.draw(screen)
     potion_group.draw(screen)
     thorn_group.draw(screen)
     player_group.draw(screen)
     stair_group.draw(screen)
+    door_group.draw(screen)
     player.screen = screen
     all_sprites.update()
     font = pygame.font.Font(None, 15)
