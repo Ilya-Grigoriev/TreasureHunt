@@ -8,6 +8,17 @@ size = width, height = 700, 500
 screen = pygame.display.set_mode(size)
 player = None
 FPS = 5
+list_level = ['first_level.txt', 'second_level.txt']
+cur_level = 0
+first_quest = [('Сколько полос на флаге США?', (190, 70), 30), ('13', (100, 70), 30), ('12', (580, 70), 30)]
+second_quest = [('Сколько километров в одной миле?', (170, 135), 30), ('1.56', (85, 135), 30),
+                ('1.61', (580, 135), 30)]
+third_quest = [('Сколько длилась столетняя война?', (170, 200), 30), ('116', (90, 200), 30), ('104', (580, 200), 30)]
+fourth_quest = [('Сколько струн у альта?', (235, 263), 30), ('4', (115, 263), 30), ('3', (580, 263), 30)]
+fifth_quest = [('Сколько элементов в периодической таблице?', (162, 327), 24), ('118', (90, 327), 30),
+               ('116', (580, 327), 30)]
+sixth_quest = [('Сколько часовых поясов в России?', (170, 392), 30), ('11', (105, 392), 30), ('10', (580, 392), 30)]
+list_questions_answers = [first_quest, second_quest, third_quest, fourth_quest, fifth_quest, sixth_quest]
 
 
 def terminate():
@@ -83,7 +94,7 @@ class Potion(pygame.sprite.Sprite):
         super().__init__(potion_group, all_sprites)
         self.image = texture_images['potion_speed']
         self.rect = self.image.get_rect().move(
-            tile_width * pos_x, tile_height * pos_y)
+            (tile_width * pos_x) + 4, tile_height * pos_y)
         self.mask = pygame.mask.from_surface(self.image)
 
 
@@ -148,6 +159,7 @@ class Player(pygame.sprite.Sprite):
 def generate_level(level):
     global stair
     new_player, x, y = None, None, None
+    line_doors = []
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '.':
@@ -159,12 +171,10 @@ def generate_level(level):
                 new_player = Player(load_image('player_right.png'), 4, 1, x * 35, y * 32)
             elif level[y][x] == 's':
                 Textures('floor', x, y)
-                potion = Potion(x, y)
-                list_potions.append(potion)
+                list_potions.append(Potion(x, y))
             elif level[y][x] == 't':
                 Textures('floor', x, y)
-                thorn = Thorn(load_image('thorns.jpg'), 4, 1, x * 35, y * 32)
-                list_thorns.append(thorn)
+                list_thorns.append(Thorn(load_image('thorns.jpg'), 4, 1, x * 35, y * 32))
             elif level[y][x] == 'u':
                 Textures('floor', x, y)
                 stair = Stair(x, y)
@@ -173,7 +183,11 @@ def generate_level(level):
                 Textures('hatch', x, y)
             elif level[y][x] == 'd':
                 Textures('floor', x + 2, y)
-                Door(x, y)
+                line_doors.append(Door(x, y))
+                if len(line_doors) == 2:
+                    list_doors.append(line_doors)
+                    line_doors = []
+    list_doors[:] = list_doors[::-1]
     return new_player, x, y
 
 
@@ -294,8 +308,12 @@ while True:
     if check_mask(list_thorns):
         health -= 1
         player.health = health
+    for i in list_doors:
+        if check_mask(i):
+            print('here')
     screen.fill(pygame.Color((84, 55, 64)))
     if pygame.sprite.collide_mask(player, stair):
+        cur_level += 1
         player.kill()
         potion_group.clear(screen, pygame.Surface(size))
         stair_group.clear(screen, pygame.Surface(size))
@@ -304,8 +322,9 @@ while True:
         thorn_group.clear(screen, pygame.Surface(size))
         list_potions = []
         list_thorns = []
-        level = load_level('second_level.txt')
+        level = load_level(list_level[cur_level])
         player, level_x, level_y = generate_level(level)
+
     floor_group.draw(screen)
     texture_group.draw(screen)
     potion_group.draw(screen)
@@ -318,5 +337,12 @@ while True:
     font = pygame.font.Font(None, 15)
     string_rendered = font.render(str(player.health), 1, pygame.Color('black'))
     screen.blit(string_rendered, (player.rect.x + 5, player.rect.y - 10))
+    if cur_level == 0:
+        for i in list_questions_answers:
+            for j in i:
+                text, coord, size = j
+                font = pygame.font.Font(None, size)
+                string_rendered = font.render(text, 1, pygame.Color('black'))
+                screen.blit(string_rendered, coord)
     clock.tick(FPS)
     pygame.display.flip()
