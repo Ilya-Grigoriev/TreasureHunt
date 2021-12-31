@@ -32,12 +32,13 @@ def load_image(name, colorkey=None):
 
 
 all_sprites = pygame.sprite.Group()
-floor_group = pygame.sprite.Group()
+texture_group = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()
 potion_group = pygame.sprite.Group()
 thorn_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 stair_group = pygame.sprite.Group()
+hatch_group = pygame.sprite.Group()
 list_potions = []
 list_thorns = []
 stair = None
@@ -47,7 +48,8 @@ texture_images = {
     'floor': load_image('floor2.png'),
     'potion_speed': load_image('potion_speed2.png'),
     'thorns': load_image('thorns.jpg'),
-    'stair': load_image('stair.jpg')
+    'stair': load_image('stair.jpg'),
+    'hatch': load_image('hatch.jpg')
 }
 
 
@@ -92,12 +94,11 @@ class Stair(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
+
 class Textures(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
-        if tile_type == 'floor':
-            super().__init__(floor_group, all_sprites)
-        # elif tile_type == 'potion_speed':
-        #     super().__init__(potion_group, all_sprites)
+        if tile_type in 'floor':
+            super().__init__(texture_group, all_sprites)
         else:
             super().__init__(wall_group, all_sprites)
         self.image = texture_images[tile_type]
@@ -145,18 +146,21 @@ def generate_level(level):
                 Textures('wall', x, y)
             elif level[y][x] == '@':
                 Textures('floor', x, y)
-                new_player = Player(load_image('player_right.png'), 4, 1, 35, 34)
+                new_player = Player(load_image('player_right.png'), 4, 1, x * 35, y * 32)
             elif level[y][x] == 's':
                 Textures('floor', x, y)
                 potion = Potion(x, y)
                 list_potions.append(potion)
             elif level[y][x] == 't':
                 Textures('floor', x, y)
-                thorn = Thorn(load_image('thorns.jpg'), 4, 1, x * 35, y * 34)
+                thorn = Thorn(load_image('thorns.jpg'), 4, 1, x * 35, y * 32)
                 list_thorns.append(thorn)
             elif level[y][x] == 'u':
                 Textures('floor', x, y)
                 stair = Stair(x, y)
+            elif level[y][x] == 'h':
+                Textures('floor', x, y)
+                Textures('hatch', x, y)
     return new_player, x, y
 
 
@@ -172,7 +176,7 @@ def load_level(filename):
         terminate()
 
 
-level = load_level('first_level.txt')
+level = load_level('second_level.txt')
 player, level_x, level_y = generate_level(level)
 cur_mod = 'r'
 step = 8
@@ -277,11 +281,20 @@ while True:
     if check_mask(list_thorns):
         health -= 1
         player.health = health
+    screen.fill(pygame.Color((84, 55, 64)))
     if pygame.sprite.collide_mask(player, stair):
-        print('here')
-    # screen.fill(pygame.Color((84, 55, 64)))
+        player.kill()
+        potion_group.clear(screen, pygame.Surface(size))
+        stair_group.clear(screen, pygame.Surface(size))
+        wall_group.clear(screen, pygame.Surface(size))
+        texture_group.clear(screen, pygame.Surface(size))
+        thorn_group.clear(screen, pygame.Surface(size))
+        list_potions = []
+        list_thorns = []
+        level = load_level('second_level.txt')
+        player, level_x, level_y = generate_level(level)
+    texture_group.draw(screen)
     wall_group.draw(screen)
-    floor_group.draw(screen)
     potion_group.draw(screen)
     thorn_group.draw(screen)
     player_group.draw(screen)
