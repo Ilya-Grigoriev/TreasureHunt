@@ -63,7 +63,9 @@ texture_images = {
     'stair': load_image('stair.jpg'),
     'hatch': load_image('hatch.jpg'),
     'door_closed': load_image('door_closed.jpg'),
-    'door_open': load_image('door_open.jpg')
+    'door_open': load_image('door_open.jpg'),
+    'left_crossbow': load_image('left_crossbow.png'),
+    'right_crossbow': load_image('right_crossbow.png')
 }
 
 
@@ -191,6 +193,12 @@ def generate_level(level):
                 if len(line_doors) == 2:
                     list_doors.append(line_doors)
                     line_doors = []
+            elif level[y][x] == 'l':
+                Textures('floor', x, y)
+                Textures('left_crossbow', x, y)
+            elif level[y][x] == 'r':
+                Textures('floor', x, y)
+                Textures('right_crossbow', x, y)
     # list_doors[:] = list_doors[::-1]
     return new_player, x, y
 
@@ -207,7 +215,7 @@ def load_level(filename):
         terminate()
 
 
-level = load_level('first_level.txt')
+level = load_level('third_level.txt')
 player, level_x, level_y = generate_level(level)
 cur_mod = 'r'
 step = 4
@@ -332,15 +340,16 @@ while True:
             list_doors[i][ans - 1].open_door()
             list_questions_answers[i][-1] = None
     screen.fill(pygame.Color((84, 55, 64)))
-    if pygame.sprite.collide_mask(player, stair):
-        cur_level += 1
-        player.kill()
-        for i in (potion_group, thorn_group, stair_group, texture_group, floor_group):
-            clear_sprites(i)
-        list_potions = []
-        list_thorns = []
-        level = load_level(list_level[cur_level])
-        player, level_x, level_y = generate_level(level)
+    if stair:
+        if pygame.sprite.collide_mask(player, stair):
+            cur_level += 1
+            player.kill()
+            for i in (potion_group, thorn_group, stair_group, texture_group, floor_group):
+                clear_sprites(i)
+            list_potions = []
+            list_thorns = []
+            level = load_level(list_level[cur_level])
+            player, level_x, level_y = generate_level(level)
     floor_group.draw(screen)
     texture_group.draw(screen)
     potion_group.draw(screen)
