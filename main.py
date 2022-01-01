@@ -10,14 +10,14 @@ player = None
 FPS = 5
 list_level = ['first_level.txt', 'second_level.txt']
 cur_level = 0
-first_quest = [('Сколько полос на флаге США?', (190, 70), 30), ('13', (100, 70), 30), ('12', (580, 70), 30)]
+first_quest = [('Сколько полос на флаге США?', (190, 70), 30), ('13', (100, 70), 30), ('12', (580, 70), 30), 1]
 second_quest = [('Сколько километров в одной миле?', (170, 135), 30), ('1.56', (85, 135), 30),
-                ('1.61', (580, 135), 30)]
-third_quest = [('Сколько длилась столетняя война?', (170, 200), 30), ('116', (90, 200), 30), ('104', (580, 200), 30)]
-fourth_quest = [('Сколько струн у альта?', (235, 263), 30), ('4', (115, 263), 30), ('3', (580, 263), 30)]
+                ('1.61', (580, 135), 30), 2]
+third_quest = [('Сколько длилась столетняя война?', (170, 200), 30), ('104', (90, 200), 30), ('116', (580, 200), 30), 2]
+fourth_quest = [('Сколько струн у альта?', (235, 263), 30), ('3', (115, 263), 30), ('4', (580, 263), 30), 2]
 fifth_quest = [('Сколько элементов в периодической таблице?', (162, 327), 24), ('118', (90, 327), 30),
-               ('116', (580, 327), 30)]
-sixth_quest = [('Сколько часовых поясов в России?', (170, 392), 30), ('11', (105, 392), 30), ('10', (580, 392), 30)]
+               ('116', (580, 327), 30), 1]
+sixth_quest = [('Сколько часовых поясов в России?', (170, 392), 30), ('10', (105, 392), 30), ('11', (580, 392), 30), 2]
 list_questions_answers = [first_quest, second_quest, third_quest, fourth_quest, fifth_quest, sixth_quest]
 
 
@@ -62,7 +62,8 @@ texture_images = {
     'thorns': load_image('thorns.jpg'),
     'stair': load_image('stair.jpg'),
     'hatch': load_image('hatch.jpg'),
-    'door': load_image('door_closed.jpg')
+    'door_closed': load_image('door_closed.jpg'),
+    'door_open': load_image('door_open.jpg')
 }
 
 
@@ -110,10 +111,13 @@ class Stair(pygame.sprite.Sprite):
 class Door(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(door_group, all_sprites)
-        self.image = texture_images['door']
+        self.image = texture_images['door_closed']
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
         self.mask = pygame.mask.from_surface(self.image)
+
+    def open_door(self):
+        self.image = texture_images['door_open']
 
 
 class Textures(pygame.sprite.Sprite):
@@ -187,7 +191,7 @@ def generate_level(level):
                 if len(line_doors) == 2:
                     list_doors.append(line_doors)
                     line_doors = []
-    list_doors[:] = list_doors[::-1]
+    # list_doors[:] = list_doors[::-1]
     return new_player, x, y
 
 
@@ -203,10 +207,10 @@ def load_level(filename):
         terminate()
 
 
-level = load_level('second_level.txt')
+level = load_level('first_level.txt')
 player, level_x, level_y = generate_level(level)
 cur_mod = 'r'
-step = 8
+step = 4
 health = 100
 
 
@@ -235,17 +239,28 @@ def start_screen():
         pygame.display.flip()
 
 
-def check_mask(arr):
-    for i in arr:
-        if pygame.sprite.collide_mask(player, i):
-            potion_group.remove(i)
-            return True
+def check_mask(arr, mode=None):
+    if mode == 'door':
+        for i in range(len(arr)):
+            if pygame.sprite.collide_mask(player, arr[i]):
+                potion_group.remove(arr[i])
+                return i + 1
+    else:
+        for i in arr:
+            if pygame.sprite.collide_mask(player, i):
+                potion_group.remove(i)
+                return True
     return False
 
 
 def back():
     global step
     step = 4
+
+
+def clear_sprites(group):
+    for i in group:
+        i.kill()
 
 
 pygame.init()
@@ -308,23 +323,24 @@ while True:
     if check_mask(list_thorns):
         health -= 1
         player.health = health
-    for i in list_doors:
-        if check_mask(i):
-            print('here')
+    for i in range(len(list_doors)):
+        ans = check_mask(list_doors[i], 'door')
+        if ans:
+            if list_questions_answers[i][-1] not in (ans, None):
+                health -= 5
+                player.health = health
+            list_doors[i][ans - 1].open_door()
+            list_questions_answers[i][-1] = None
     screen.fill(pygame.Color((84, 55, 64)))
     if pygame.sprite.collide_mask(player, stair):
         cur_level += 1
         player.kill()
-        potion_group.clear(screen, pygame.Surface(size))
-        stair_group.clear(screen, pygame.Surface(size))
-        texture_group.clear(screen, pygame.Surface(size))
-        texture_group.clear(screen, pygame.Surface(size))
-        thorn_group.clear(screen, pygame.Surface(size))
+        for i in (potion_group, thorn_group, stair_group, texture_group, floor_group):
+            clear_sprites(i)
         list_potions = []
         list_thorns = []
         level = load_level(list_level[cur_level])
         player, level_x, level_y = generate_level(level)
-
     floor_group.draw(screen)
     texture_group.draw(screen)
     potion_group.draw(screen)
@@ -337,9 +353,10 @@ while True:
     font = pygame.font.Font(None, 15)
     string_rendered = font.render(str(player.health), 1, pygame.Color('black'))
     screen.blit(string_rendered, (player.rect.x + 5, player.rect.y - 10))
-    if cur_level == 0:
+    if cur_level == 1:
         for i in list_questions_answers:
-            for j in i:
+            quest_ans, correct = i[:-1], i[-1]
+            for j in quest_ans:
                 text, coord, size = j
                 font = pygame.font.Font(None, size)
                 string_rendered = font.render(text, 1, pygame.Color('black'))
