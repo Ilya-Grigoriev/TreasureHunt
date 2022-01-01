@@ -50,9 +50,11 @@ thorn_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 stair_group = pygame.sprite.Group()
 door_group = pygame.sprite.Group()
+arrow_group = pygame.sprite.Group()
 list_potions = []
 list_thorns = []
 list_doors = []
+list_arrows = []
 stair = None
 
 texture_images = {
@@ -65,7 +67,9 @@ texture_images = {
     'door_closed': load_image('door_closed.jpg'),
     'door_open': load_image('door_open.jpg'),
     'left_crossbow': load_image('left_crossbow.png'),
-    'right_crossbow': load_image('right_crossbow.png')
+    'right_crossbow': load_image('right_crossbow.png'),
+    'left_arrow': load_image('left_arrow.jpg'),
+    'right_arrow': load_image('right_arrow.jpg')
 }
 
 
@@ -120,6 +124,24 @@ class Door(pygame.sprite.Sprite):
 
     def open_door(self):
         self.image = texture_images['door_open']
+
+
+class Arrow(pygame.sprite.Sprite):
+    def __init__(self, orient, pos_x, pos_y):
+        super().__init__(arrow_group, all_sprites)
+        self.orient = 'r' if orient == 'right_arrow' else 'l'
+        self.image = texture_images[orient]
+        self.start_coord = (tile_width * pos_x, (tile_height * pos_y) + 10)
+        self.rect = self.image.get_rect().move(self.start_coord)
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def update(self):
+        if self.orient == 'l':
+            self.rect.x += 15
+        else:
+            self.rect.x -= 15
+        if (self.orient == 'r' and self.rect.x < 26) or (self.orient == 'l' and self.rect.x > 644):
+            self.rect = self.image.get_rect().move(self.start_coord)
 
 
 class Textures(pygame.sprite.Sprite):
@@ -199,6 +221,12 @@ def generate_level(level):
             elif level[y][x] == 'r':
                 Textures('floor', x, y)
                 Textures('right_crossbow', x, y)
+            elif level[y][x] == '1':
+                Textures('floor', x, y)
+                list_arrows.append(Arrow('left_arrow', x, y))
+            elif level[y][x] == '2':
+                Textures('floor', x, y)
+                list_arrows.append(Arrow('right_arrow', x, y))
     # list_doors[:] = list_doors[::-1]
     return new_player, x, y
 
@@ -218,7 +246,7 @@ def load_level(filename):
 level = load_level('third_level.txt')
 player, level_x, level_y = generate_level(level)
 cur_mod = 'r'
-step = 4
+step = 8
 health = 100
 
 
@@ -247,16 +275,18 @@ def start_screen():
         pygame.display.flip()
 
 
-def check_mask(arr, mode=None):
+def check_mask(arr, group=None, mode=None):
     if mode == 'door':
         for i in range(len(arr)):
             if pygame.sprite.collide_mask(player, arr[i]):
-                potion_group.remove(arr[i])
                 return i + 1
     else:
         for i in arr:
             if pygame.sprite.collide_mask(player, i):
-                potion_group.remove(i)
+                if mode == 'arrow':
+                    i.rect = i.image.get_rect().move(i.start_coord)
+                elif mode != 'thorn':
+                    group.remove(i)
                 return True
     return False
 
@@ -324,12 +354,15 @@ while True:
                         player.health = health
                 else:
                     player.rect.y -= step
-    if check_mask(list_potions):
+    if check_mask(list_potions, potion_group):
         step = 8
         Timer = threading.Timer(15, back)
         Timer.start()
-    if check_mask(list_thorns):
+    if check_mask(list_thorns, mode='thorn'):
         health -= 1
+        player.health = health
+    if check_mask(list_arrows, arrow_group, 'arrow'):
+        health -= 5
         player.health = health
     for i in range(len(list_doors)):
         ans = check_mask(list_doors[i], 'door')
@@ -357,6 +390,7 @@ while True:
     player_group.draw(screen)
     stair_group.draw(screen)
     door_group.draw(screen)
+    arrow_group.draw(screen)
     player.screen = screen
     all_sprites.update()
     font = pygame.font.Font(None, 15)
