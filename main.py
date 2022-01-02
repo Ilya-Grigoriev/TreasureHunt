@@ -69,7 +69,8 @@ texture_images = {
     'left_crossbow': load_image('left_crossbow.png'),
     'right_crossbow': load_image('right_crossbow.png'),
     'left_arrow': load_image('left_arrow.jpg'),
-    'right_arrow': load_image('right_arrow.jpg')
+    'right_arrow': load_image('right_arrow.jpg'),
+    'prize': load_image('prize.png')
 }
 
 
@@ -154,7 +155,13 @@ class Textures(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
 
-
+class Prize(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(stair_group, all_sprites)
+        self.image = texture_images['prize']
+        self.rect = self.image.get_rect().move(
+            tile_width * pos_x, tile_height * pos_y)
+        self.mask = pygame.mask.from_surface(self.image)
 # player_image = load_image('player_down.png')
 
 tile_width = tile_height = 32
@@ -185,7 +192,7 @@ class Player(pygame.sprite.Sprite):
 
 
 def generate_level(level):
-    global stair
+    global stair, prize
     new_player, x, y = None, None, None
     line_doors = []
     for y in range(len(level)):
@@ -202,7 +209,7 @@ def generate_level(level):
                 list_potions.append(Potion(x, y))
             elif level[y][x] == 't':
                 Textures('floor', x, y)
-                list_thorns.append(Thorn(load_image('thorns.jpg'), 4, 1, x * 35, y * 32))
+                list_thorns.append(Thorn(load_image('thorns.jpg'), 4, 1, x * 32, y * 32))
             elif level[y][x] == 'u':
                 Textures('floor', x, y)
                 stair = Stair(x, y)
@@ -227,6 +234,9 @@ def generate_level(level):
             elif level[y][x] == '2':
                 Textures('floor', x, y)
                 list_arrows.append(Arrow('right_arrow', x, y))
+            elif level[y][x] == 'p':
+                Textures('floor', x, y)
+                prize = Prize(x, y)
     # list_doors[:] = list_doors[::-1]
     return new_player, x, y
 
@@ -362,7 +372,7 @@ while True:
         health -= 1
         player.health = health
     if check_mask(list_arrows, arrow_group, 'arrow'):
-        health -= 5
+        health -= 3
         player.health = health
     for i in range(len(list_doors)):
         ans = check_mask(list_doors[i], 'door')
@@ -374,6 +384,11 @@ while True:
             list_questions_answers[i][-1] = None
     screen.fill(pygame.Color((84, 55, 64)))
     if stair:
+        if pygame.sprite.collide_mask(player, prize):
+            for i in (potion_group, thorn_group, stair_group, texture_group, floor_group):
+                clear_sprites(i)
+            list_potions = []
+            list_thorns = []
         if pygame.sprite.collide_mask(player, stair):
             cur_level += 1
             player.kill()
