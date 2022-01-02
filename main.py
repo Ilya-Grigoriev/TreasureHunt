@@ -8,7 +8,7 @@ size = width, height = 700, 500
 screen = pygame.display.set_mode(size)
 player = None
 FPS = 5
-list_level = ['first_level.txt', 'second_level.txt']
+list_level = ['first_level.txt', 'second_level.txt', 'third_level.txt']
 cur_level = 0
 first_quest = [('Сколько полос на флаге США?', (190, 70), 30), ('13', (100, 70), 30), ('12', (580, 70), 30), 1]
 second_quest = [('Сколько километров в одной миле?', (170, 135), 30), ('1.56', (85, 135), 30),
@@ -56,6 +56,9 @@ list_thorns = []
 list_doors = []
 list_arrows = []
 stair = None
+prize = None
+end = False
+action = True
 
 texture_images = {
     'wall': load_image('wall4.jpg'),
@@ -155,6 +158,7 @@ class Textures(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
 
+
 class Prize(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(stair_group, all_sprites)
@@ -162,6 +166,8 @@ class Prize(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
         self.mask = pygame.mask.from_surface(self.image)
+
+
 # player_image = load_image('player_down.png')
 
 tile_width = tile_height = 32
@@ -170,7 +176,7 @@ tile_width = tile_height = 32
 class Player(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(player_group, all_sprites)
-        self.health = 100
+        self.health = 10
         self.frames = []
         self.cut_sheet(sheet, columns, rows)
         self.cur_frame = 0
@@ -253,10 +259,12 @@ def load_level(filename):
         terminate()
 
 
-level = load_level('third_level.txt')
+level = load_level('first_level.txt')
 player, level_x, level_y = generate_level(level)
+# player.rect.x = 560
+# player.rect.y = 450
 cur_mod = 'r'
-step = 8
+step = 4
 health = 100
 
 
@@ -282,6 +290,21 @@ def start_screen():
             elif event.type == pygame.KEYDOWN or \
                     event.type == pygame.MOUSEBUTTONDOWN:
                 return
+        pygame.display.flip()
+
+
+def end_screen():
+    fon = pygame.transform.scale(load_image('end_screen.png'), size)
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 80)
+    string_rendered = font.render('Поздравляю', 1, pygame.Color('chocolate1'))
+    screen.blit(string_rendered, (170, 190))
+    string_rendered = font.render('Вас с победой!', 1, pygame.Color('chocolate1'))
+    screen.blit(string_rendered, (140, 250))
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
         pygame.display.flip()
 
 
@@ -375,7 +398,7 @@ while True:
         health -= 3
         player.health = health
     for i in range(len(list_doors)):
-        ans = check_mask(list_doors[i], 'door')
+        ans = check_mask(list_doors[i], door_group, 'door')
         if ans:
             if list_questions_answers[i][-1] not in (ans, None):
                 health -= 5
@@ -384,11 +407,6 @@ while True:
             list_questions_answers[i][-1] = None
     screen.fill(pygame.Color((84, 55, 64)))
     if stair:
-        if pygame.sprite.collide_mask(player, prize):
-            for i in (potion_group, thorn_group, stair_group, texture_group, floor_group):
-                clear_sprites(i)
-            list_potions = []
-            list_thorns = []
         if pygame.sprite.collide_mask(player, stair):
             cur_level += 1
             player.kill()
@@ -398,6 +416,15 @@ while True:
             list_thorns = []
             level = load_level(list_level[cur_level])
             player, level_x, level_y = generate_level(level)
+    if prize:
+        if pygame.sprite.collide_mask(player, prize):
+            player.kill()
+            for i in (potion_group, thorn_group, stair_group, texture_group, floor_group, all_sprites):
+                clear_sprites(i)
+            list_potions = []
+            list_thorns = []
+            end = True
+            break
     floor_group.draw(screen)
     texture_group.draw(screen)
     potion_group.draw(screen)
@@ -408,9 +435,10 @@ while True:
     arrow_group.draw(screen)
     player.screen = screen
     all_sprites.update()
-    font = pygame.font.Font(None, 15)
-    string_rendered = font.render(str(player.health), 1, pygame.Color('black'))
-    screen.blit(string_rendered, (player.rect.x + 5, player.rect.y - 10))
+    if action:
+        font = pygame.font.Font(None, 15)
+        string_rendered = font.render(str(player.health), 1, pygame.Color('black'))
+        screen.blit(string_rendered, (player.rect.x + 5, player.rect.y - 10))
     if cur_level == 1:
         for i in list_questions_answers:
             quest_ans, correct = i[:-1], i[-1]
@@ -419,5 +447,14 @@ while True:
                 font = pygame.font.Font(None, size)
                 string_rendered = font.render(text, 1, pygame.Color('black'))
                 screen.blit(string_rendered, coord)
+    if health <= 0:
+        pygame.draw.rect(screen, pygame.Color('black'), (120, 200, 460, 110), 0)
+        font = pygame.font.Font(None, 80)
+        string_rendered = font.render('Вы проиграли!', 1, pygame.Color('chocolate1'))
+        screen.blit(string_rendered, (145, 225))
+        player.kill()
+        action = False
     clock.tick(FPS)
     pygame.display.flip()
+if end:
+    end_screen()
