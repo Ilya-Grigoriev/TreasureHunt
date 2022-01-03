@@ -64,6 +64,7 @@ texture_images = {
     'wall': load_image('wall4.jpg'),
     'floor': load_image('floor2.png'),
     'potion_speed': load_image('potion_speed2.png'),
+    'potion_wellness': load_image('potion_wellness.png'),
     'thorns': load_image('thorns.jpg'),
     'stair': load_image('stair.jpg'),
     'hatch': load_image('hatch.jpg'),
@@ -101,9 +102,9 @@ class Thorn(pygame.sprite.Sprite):
 
 
 class Potion(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y):
+    def __init__(self, name, pos_x, pos_y):
         super().__init__(potion_group, all_sprites)
-        self.image = texture_images['potion_speed']
+        self.image = texture_images['potion_speed' if name == 'speed' else 'potion_wellness']
         self.rect = self.image.get_rect().move(
             (tile_width * pos_x) + 4, tile_height * pos_y)
         self.mask = pygame.mask.from_surface(self.image)
@@ -141,10 +142,10 @@ class Arrow(pygame.sprite.Sprite):
 
     def update(self):
         if self.orient == 'l':
-            self.rect.x += 15
-        else:
             self.rect.x -= 15
-        if (self.orient == 'r' and self.rect.x < 26) or (self.orient == 'l' and self.rect.x > 644):
+        else:
+            self.rect.x += 15
+        if (self.orient == 'l' and self.rect.x < 26) or (self.orient == 'r' and self.rect.x > 644):
             self.rect = self.image.get_rect().move(self.start_coord)
 
 
@@ -210,9 +211,10 @@ def generate_level(level):
             elif level[y][x] == '@':
                 Textures('floor', x, y)
                 new_player = Player(load_image('player_right.png'), 4, 1, x * 35, y * 32)
-            elif level[y][x] == 's':
+            elif level[y][x] in ('s', 'w'):
+                name = 'speed' if level[y][x] == 's' else 'wellness'
                 Textures('floor', x, y)
-                list_potions.append(Potion(x, y))
+                list_potions.append((name, Potion(name, x, y)))
             elif level[y][x] == 't':
                 Textures('floor', x, y)
                 list_thorns.append(Thorn(load_image('thorns.jpg'), 4, 1, x * 32, y * 32))
@@ -259,12 +261,12 @@ def load_level(filename):
         terminate()
 
 
-level = load_level('first_level.txt')
+level = load_level('third_level.txt')
 player, level_x, level_y = generate_level(level)
 # player.rect.x = 560
 # player.rect.y = 450
 cur_mod = 'r'
-step = 4
+step = 8
 health = 100
 
 
@@ -315,7 +317,11 @@ def check_mask(arr, group=None, mode=None):
                 return i + 1
     else:
         for i in arr:
-            if pygame.sprite.collide_mask(player, i):
+            if mode == 'potion':
+                if pygame.sprite.collide_mask(player, i[1]):
+                    group.remove(i[1])
+                    return i[0]
+            elif pygame.sprite.collide_mask(player, i):
                 if mode == 'arrow':
                     i.rect = i.image.get_rect().move(i.start_coord)
                 elif mode != 'thorn':
@@ -389,12 +395,17 @@ while True:
                         player.health = health
                 else:
                     player.rect.y -= step
-    if check_mask(list_potions, potion_group):
-        step = 8
-        Timer = threading.Timer(15, back)
-        Timer.start()
+    potion = check_mask(list_potions, potion_group, 'potion')
+    if not(isinstance(potion, bool)):
+        if potion == 'speed':
+            step = 8
+            Timer = threading.Timer(15, back)
+            Timer.start()
+        else:
+            health = 100
+            player.health = 100
     thorn = check_mask(list_thorns, mode='thorn')
-    if not(isinstance(thorn, bool)):
+    if not (isinstance(thorn, bool)):
         if (thorn.cur_frame % 4) == 1:
             health -= 1
             player.health = health
