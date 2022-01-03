@@ -261,10 +261,12 @@ def load_level(filename):
         terminate()
 
 
-level = load_level('first_level.txt')
+level = load_level('third_level.txt')
 player, level_x, level_y = generate_level(level)
 # player.rect.x = 560
 # player.rect.y = 450
+player.rect.x = 100
+player.rect.y = 140
 cur_mod = 'r'
 step = 4
 health = 100
@@ -310,13 +312,13 @@ def end_screen():
         pygame.display.flip()
 
 
-def check_mask(arr, group=None, mode=None):
+def check_mask(arr, group=None, mode=None, access=True):
     for i in range(len(arr)):
         if mode == 'potion':
             if pygame.sprite.collide_mask(player, arr[i][1]):
                 group.remove(arr[i][1])
                 return i, arr[i][0]
-        elif pygame.sprite.collide_mask(player, arr[i]):
+        elif pygame.sprite.collide_mask(player, arr[i]) and access:
             if mode == 'door':
                 return i + 1
             elif mode == 'arrow':
@@ -396,7 +398,7 @@ while True:
     if not (isinstance(potion, bool)):
         ind, name = potion
         del list_potions[ind]
-        if potion == 'speed':
+        if name == 'speed':
             step = 8
             Timer = threading.Timer(15, back)
             Timer.start()
@@ -408,7 +410,7 @@ while True:
         if (thorn.cur_frame % 4) == 1:
             health -= 1
             player.health = health
-    if check_mask(list_arrows, arrow_group, 'arrow'):
+    if check_mask(list_arrows, arrow_group, 'arrow', action):
         health -= 3
         player.health = health
     for i in range(len(list_doors)):
@@ -439,6 +441,11 @@ while True:
             list_thorns = []
             end = True
             break
+    if health <= 0:
+        all_sprites.remove(player)
+        player_group.remove(player)
+        player.kill()
+        action = False
     floor_group.draw(screen)
     texture_group.draw(screen)
     potion_group.draw(screen)
@@ -453,6 +460,11 @@ while True:
         font = pygame.font.Font(None, 15)
         string_rendered = font.render(str(player.health), 1, pygame.Color('black'))
         screen.blit(string_rendered, (player.rect.x + 5, player.rect.y - 10))
+    elif not action:
+        pygame.draw.rect(screen, pygame.Color('black'), (120, 200, 460, 110), 0)
+        font = pygame.font.Font(None, 80)
+        string_rendered = font.render('Вы проиграли!', 1, pygame.Color('chocolate1'))
+        screen.blit(string_rendered, (145, 225))
     if cur_level == 1:
         for i in list_questions_answers:
             quest_ans, correct = i[:-1], i[-1]
@@ -461,13 +473,6 @@ while True:
                 font = pygame.font.Font(None, size)
                 string_rendered = font.render(text, 1, pygame.Color('black'))
                 screen.blit(string_rendered, coord)
-    if health <= 0:
-        pygame.draw.rect(screen, pygame.Color('black'), (120, 200, 460, 110), 0)
-        font = pygame.font.Font(None, 80)
-        string_rendered = font.render('Вы проиграли!', 1, pygame.Color('chocolate1'))
-        screen.blit(string_rendered, (145, 225))
-        player.kill()
-        action = False
     clock.tick(FPS)
     pygame.display.flip()
 if end:
