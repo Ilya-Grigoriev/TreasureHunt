@@ -261,12 +261,12 @@ def load_level(filename):
         terminate()
 
 
-level = load_level('third_level.txt')
+level = load_level('first_level.txt')
 player, level_x, level_y = generate_level(level)
 # player.rect.x = 560
 # player.rect.y = 450
 cur_mod = 'r'
-step = 8
+step = 4
 health = 100
 
 
@@ -311,24 +311,21 @@ def end_screen():
 
 
 def check_mask(arr, group=None, mode=None):
-    if mode == 'door':
-        for i in range(len(arr)):
-            if pygame.sprite.collide_mask(player, arr[i]):
+    for i in range(len(arr)):
+        if mode == 'potion':
+            if pygame.sprite.collide_mask(player, arr[i][1]):
+                group.remove(arr[i][1])
+                return i, arr[i][0]
+        elif pygame.sprite.collide_mask(player, arr[i]):
+            if mode == 'door':
                 return i + 1
-    else:
-        for i in arr:
-            if mode == 'potion':
-                if pygame.sprite.collide_mask(player, i[1]):
-                    group.remove(i[1])
-                    return i[0]
-            elif pygame.sprite.collide_mask(player, i):
-                if mode == 'arrow':
-                    i.rect = i.image.get_rect().move(i.start_coord)
-                elif mode != 'thorn':
-                    group.remove(i)
-                elif mode == 'thorn':
-                    return i
-                return True
+            elif mode == 'arrow':
+                arr[i].rect = arr[i].image.get_rect().move(arr[i].start_coord)
+            elif mode == 'thorn':
+                return arr[i]
+            else:
+                group.remove(arr[i])
+            return True
     return False
 
 
@@ -396,7 +393,9 @@ while True:
                 else:
                     player.rect.y -= step
     potion = check_mask(list_potions, potion_group, 'potion')
-    if not(isinstance(potion, bool)):
+    if not (isinstance(potion, bool)):
+        ind, name = potion
+        del list_potions[ind]
         if potion == 'speed':
             step = 8
             Timer = threading.Timer(15, back)
