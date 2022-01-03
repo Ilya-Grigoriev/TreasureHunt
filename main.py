@@ -73,7 +73,7 @@ texture_images = {
     'right_crossbow': load_image('right_crossbow.png'),
     'left_arrow': load_image('left_arrow.jpg'),
     'right_arrow': load_image('right_arrow.jpg'),
-    'prize': load_image('prize.png')
+    'prize': load_image('treasures.png')
 }
 
 
@@ -164,7 +164,7 @@ class Prize(pygame.sprite.Sprite):
         super().__init__(stair_group, all_sprites)
         self.image = texture_images['prize']
         self.rect = self.image.get_rect().move(
-            tile_width * pos_x, tile_height * pos_y)
+            (tile_width * pos_x) - 3, tile_height * pos_y)
         self.mask = pygame.mask.from_surface(self.image)
 
 
@@ -176,7 +176,7 @@ tile_width = tile_height = 32
 class Player(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(player_group, all_sprites)
-        self.health = 10
+        self.health = 100
         self.frames = []
         self.cut_sheet(sheet, columns, rows)
         self.cur_frame = 0
@@ -320,6 +320,8 @@ def check_mask(arr, group=None, mode=None):
                     i.rect = i.image.get_rect().move(i.start_coord)
                 elif mode != 'thorn':
                     group.remove(i)
+                elif mode == 'thorn':
+                    return i
                 return True
     return False
 
@@ -391,9 +393,11 @@ while True:
         step = 8
         Timer = threading.Timer(15, back)
         Timer.start()
-    if check_mask(list_thorns, mode='thorn'):
-        health -= 1
-        player.health = health
+    thorn = check_mask(list_thorns, mode='thorn')
+    if not(isinstance(thorn, bool)):
+        if (thorn.cur_frame % 4) == 1:
+            health -= 1
+            player.health = health
     if check_mask(list_arrows, arrow_group, 'arrow'):
         health -= 3
         player.health = health
@@ -410,7 +414,7 @@ while True:
         if pygame.sprite.collide_mask(player, stair):
             cur_level += 1
             player.kill()
-            for i in (potion_group, thorn_group, stair_group, texture_group, floor_group):
+            for i in (potion_group, thorn_group, stair_group, texture_group, floor_group, door_group):
                 clear_sprites(i)
             list_potions = []
             list_thorns = []
