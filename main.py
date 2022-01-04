@@ -261,12 +261,12 @@ def load_level(filename):
         terminate()
 
 
-level = load_level('third_level.txt')
+level = load_level('first_level.txt')
 player, level_x, level_y = generate_level(level)
 # player.rect.x = 560
 # player.rect.y = 450
-player.rect.x = 100
-player.rect.y = 140
+# player.rect.x = 100
+# player.rect.y = 140
 cur_mod = 'r'
 step = 4
 health = 100
@@ -282,11 +282,13 @@ def start_screen():
     screen.blit(string_rendered, (210, 215))
     font = pygame.font.Font(None, 20)
     string_rendered = font.render('Голубой флакон - зелье скорости на 15 секунд', 1, pygame.Color('chocolate1'))
-    screen.blit(string_rendered, (75, 395))
+    screen.blit(string_rendered, (75, 390))
+    string_rendered = font.render('Красный флакон - зелье здоровья', 1, pygame.Color('chocolate1'))
+    screen.blit(string_rendered, (75, 410))
     string_rendered = font.render('Создатель игры:', 1, pygame.Color('chocolate1'))
-    screen.blit(string_rendered, (515, 395))
+    screen.blit(string_rendered, (515, 390))
     string_rendered = font.render('Григорьев Илья', 1, pygame.Color('chocolate1'))
-    screen.blit(string_rendered, (518, 415))
+    screen.blit(string_rendered, (518, 410))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
