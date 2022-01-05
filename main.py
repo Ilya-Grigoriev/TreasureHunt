@@ -169,8 +169,6 @@ class Prize(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
-# player_image = load_image('player_down.png')
-
 tile_width = tile_height = 32
 
 
@@ -245,7 +243,6 @@ def generate_level(level):
             elif level[y][x] == 'p':
                 Textures('floor', x, y)
                 prize = Prize(x, y)
-    # list_doors[:] = list_doors[::-1]
     return new_player, x, y
 
 
