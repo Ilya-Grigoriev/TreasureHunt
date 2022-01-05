@@ -347,52 +347,52 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             terminate()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                player.rect.x -= step
-                if not pygame.sprite.spritecollideany(player, texture_group):
-                    if cur_mod != 'l':
-                        player_2 = Player(load_image('player_left.png'), 4, 1, player.rect.x, player.rect.y)
-                        player.kill()
-                        player = player_2
-                        cur_mod = 'l'
-                        player.health = health
-                else:
-                    player.rect.x += step
-            if event.key == pygame.K_RIGHT:
-                player.rect.x += step
-                if not pygame.sprite.spritecollideany(player, texture_group):
-                    if cur_mod != 'r':
-                        player_2 = Player(load_image('player_right.png'), 4, 1, player.rect.x, player.rect.y)
-                        player.kill()
-                        player = player_2
-                        cur_mod = 'r'
-                        player.health = health
-                else:
-                    player.rect.x -= step
-            if event.key == pygame.K_UP:
-                # print(pygame.sprite.spritecollide(player, tiles_group, False))
-                player.rect.y -= step
-                if not pygame.sprite.spritecollideany(player, texture_group):
-                    if cur_mod != 'u':
-                        player_2 = Player(load_image('player_up.png'), 4, 1, player.rect.x, player.rect.y)
-                        player.kill()
-                        player = player_2
-                        cur_mod = 'u'
-                        player.health = health
-                else:
-                    player.rect.y += step
-            if event.key == pygame.K_DOWN:
-                player.rect.y += step
-                if not pygame.sprite.spritecollideany(player, texture_group):
-                    if cur_mod != 'd':
-                        player_2 = Player(load_image('player_down.png'), 4, 1, player.rect.x, player.rect.y)
-                        player.kill()
-                        player = player_2
-                        cur_mod = 'd'
-                        player.health = health
-                else:
-                    player.rect.y -= step
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        player.rect.x -= step
+        if not pygame.sprite.spritecollideany(player, texture_group):
+            if cur_mod != 'l':
+                player_2 = Player(load_image('player_left.png'), 4, 1, player.rect.x, player.rect.y)
+                player.kill()
+                player = player_2
+                cur_mod = 'l'
+                player.health = health
+        else:
+            player.rect.x += step
+    if keys[pygame.K_RIGHT]:
+        player.rect.x += step
+        if not pygame.sprite.spritecollideany(player, texture_group):
+            if cur_mod != 'r':
+                player_2 = Player(load_image('player_right.png'), 4, 1, player.rect.x, player.rect.y)
+                player.kill()
+                player = player_2
+                cur_mod = 'r'
+                player.health = health
+        else:
+            player.rect.x -= step
+    if keys[pygame.K_UP]:
+        # print(pygame.sprite.spritecollide(player, tiles_group, False))
+        player.rect.y -= step
+        if not pygame.sprite.spritecollideany(player, texture_group):
+            if cur_mod != 'u':
+                player_2 = Player(load_image('player_up.png'), 4, 1, player.rect.x, player.rect.y)
+                player.kill()
+                player = player_2
+                cur_mod = 'u'
+                player.health = health
+        else:
+            player.rect.y += step
+    if keys[pygame.K_DOWN]:
+        player.rect.y += step
+        if not pygame.sprite.spritecollideany(player, texture_group):
+            if cur_mod != 'd':
+                player_2 = Player(load_image('player_down.png'), 4, 1, player.rect.x, player.rect.y)
+                player.kill()
+                player = player_2
+                cur_mod = 'd'
+                player.health = health
+        else:
+            player.rect.y -= step
     potion = check_mask(list_potions, potion_group, 'potion')
     if not (isinstance(potion, bool)):
         ind, name = potion
@@ -472,7 +472,8 @@ while True:
                 font = pygame.font.Font(None, size)
                 string_rendered = font.render(text, 1, pygame.Color('black'))
                 screen.blit(string_rendered, coord)
-    clock.tick(FPS)
     pygame.display.flip()
+    pygame.event.pump()
+    clock.tick(FPS)
 if end:
     end_screen()
