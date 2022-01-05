@@ -470,6 +470,5 @@ while True:
     pygame.display.flip()
     pygame.event.pump()
     clock.tick(FPS)
-
 if end:
     end_screen()
