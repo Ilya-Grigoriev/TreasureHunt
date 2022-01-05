@@ -260,10 +260,6 @@ def load_level(filename):
 
 level = load_level('first_level.txt')
 player, level_x, level_y = generate_level(level)
-# player.rect.x = 560
-# player.rect.y = 450
-# player.rect.x = 100
-# player.rect.y = 140
 cur_mod = 'r'
 step = 4
 health = 100
@@ -371,7 +367,6 @@ while True:
                 else:
                     player.rect.x -= step
             if event.key == pygame.K_UP:
-                # print(pygame.sprite.spritecollide(player, tiles_group, False))
                 player.rect.y -= step
                 if not pygame.sprite.spritecollideany(player, texture_group):
                     if cur_mod != 'u':
