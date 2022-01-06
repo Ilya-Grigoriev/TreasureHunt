@@ -339,6 +339,7 @@ def clear_sprites(group):
 pygame.init()
 start_screen()
 clock = pygame.time.Clock()
+streams = []
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -396,6 +397,10 @@ while True:
             step = 8
             Timer = threading.Timer(15, back)
             Timer.start()
+            streams.append(Timer)
+            if len(streams) > 1:
+                streams[0].cancel()
+                del streams[0]
         else:
             health = 100
             player.health = 100
