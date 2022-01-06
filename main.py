@@ -426,6 +426,7 @@ while True:
             list_thorns = []
             level = load_level(list_level[cur_level])
             player, level_x, level_y = generate_level(level)
+            player.health = health
     if prize:
         if pygame.sprite.collide_mask(player, prize):
             player.kill()
@@ -453,7 +454,12 @@ while True:
     if action:
         font = pygame.font.Font(None, 15)
         string_rendered = font.render(str(player.health), 1, pygame.Color('black'))
-        screen.blit(string_rendered, (player.rect.x + 5, player.rect.y - 10))
+        if health == 100:
+            screen.blit(string_rendered, (player.rect.x + 5, player.rect.y - 13))
+        elif len(str(health)) == 2:
+            screen.blit(string_rendered, (player.rect.x + 8, player.rect.y - 13))
+        else:
+            screen.blit(string_rendered, (player.rect.x + 12, player.rect.y - 13))
     elif not action:
         pygame.draw.rect(screen, pygame.Color('black'), (120, 200, 460, 110), 0)
         font = pygame.font.Font(None, 80)
