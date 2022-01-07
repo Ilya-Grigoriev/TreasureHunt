@@ -9,7 +9,6 @@ screen = pygame.display.set_mode(size)
 player = None
 FPS = 5
 list_level = ['first_level.txt', 'second_level.txt', 'third_level.txt']
-cur_level = 0
 first_quest = [('Сколько полос на флаге США?', (190, 70), 30), ('13', (100, 70), 30), ('12', (580, 70), 30), 1]
 second_quest = [('Сколько километров в одной миле?', (170, 135), 30), ('1.56', (85, 135), 30),
                 ('1.61', (580, 135), 30), 2]
@@ -124,7 +123,7 @@ class Door(pygame.sprite.Sprite):
         super().__init__(door_group, all_sprites)
         self.image = texture_images['door_closed']
         self.rect = self.image.get_rect().move(
-            tile_width * pos_x, tile_height * pos_y)
+            (tile_width * pos_x) + 2, tile_height * pos_y)
         self.mask = pygame.mask.from_surface(self.image)
 
     def open_door(self):
@@ -258,7 +257,8 @@ def load_level(filename):
         terminate()
 
 
-level = load_level('first_level.txt')
+level = load_level('second_level.txt')
+cur_level = 1
 player, level_x, level_y = generate_level(level)
 cur_mod = 'r'
 step = 4
@@ -450,9 +450,9 @@ while True:
     texture_group.draw(screen)
     potion_group.draw(screen)
     thorn_group.draw(screen)
+    door_group.draw(screen)
     player_group.draw(screen)
     stair_group.draw(screen)
-    door_group.draw(screen)
     arrow_group.draw(screen)
     player.screen = screen
     all_sprites.update()
