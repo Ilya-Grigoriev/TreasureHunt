@@ -9,7 +9,6 @@ screen = pygame.display.set_mode(size)
 player = None
 FPS = 5
 list_level = ['first_level.txt', 'second_level.txt', 'third_level.txt']
-cur_level = 0
 first_quest = [('Сколько полос на флаге США?', (190, 70), 30), ('13', (100, 70), 30), ('12', (580, 70), 30), 1]
 second_quest = [('Сколько километров в одной миле?', (170, 135), 30), ('1.56', (85, 135), 30),
                 ('1.61', (580, 135), 30), 2]
@@ -51,17 +50,19 @@ player_group = pygame.sprite.Group()
 stair_group = pygame.sprite.Group()
 door_group = pygame.sprite.Group()
 arrow_group = pygame.sprite.Group()
+mine_group = pygame.sprite.Group()
 list_potions = []
 list_thorns = []
 list_doors = []
 list_arrows = []
+list_mines = []
 stair = None
 prize = None
 end = False
 action = True
 
 texture_images = {
-    'wall': load_image('wall4.jpg'),
+    'wall': load_image('wall5.jpg'),
     'floor': load_image('floor2.png'),
     'potion_speed': load_image('potion_speed2.png'),
     'potion_wellness': load_image('potion_wellness.png'),
@@ -74,7 +75,8 @@ texture_images = {
     'right_crossbow': load_image('right_crossbow.png'),
     'left_arrow': load_image('left_arrow.jpg'),
     'right_arrow': load_image('right_arrow.jpg'),
-    'prize': load_image('treasures.png')
+    'prize': load_image('treasures.png'),
+    'mine': load_image('mine.png')
 }
 
 
@@ -124,7 +126,7 @@ class Door(pygame.sprite.Sprite):
         super().__init__(door_group, all_sprites)
         self.image = texture_images['door_closed']
         self.rect = self.image.get_rect().move(
-            tile_width * pos_x, tile_height * pos_y)
+            (tile_width * pos_x) + 2, tile_height * pos_y)
         self.mask = pygame.mask.from_surface(self.image)
 
     def open_door(self):
@@ -147,6 +149,40 @@ class Arrow(pygame.sprite.Sprite):
             self.rect.x += 15
         if (self.orient == 'l' and self.rect.x < 26) or (self.orient == 'r' and self.rect.x > 644):
             self.rect = self.image.get_rect().move(self.start_coord)
+
+
+class Mine(pygame.sprite.Sprite):
+    def __init__(self, ind_mine, pos_x, pos_y):
+        super().__init__(mine_group, all_sprites)
+        self.image = texture_images['mine']
+        self.start_coord = (tile_width * pos_x, tile_height * pos_y)
+        self.rect = self.image.get_rect().move(self.start_coord)
+        self.mask = pygame.mask.from_surface(self.image)
+        self.ind_mine = ind_mine
+        self.frames = []
+        self.cur_frame = 0
+        self.action = False
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(self.rect.x, self.rect.y, sheet.get_width() // columns, sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(frame_location, self.rect.size)))
+
+    def activate(self, columns, rows):
+        self.action = True
+        self.cut_sheet(load_image('explosions.png'), columns, rows)
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+
+    def update(self):
+        if self.cur_frame == 15:
+            mine_group.remove(self)
+            self.kill()
+        if self.action:
+            self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+            self.image = self.frames[self.cur_frame]
 
 
 class Textures(pygame.sprite.Sprite):
@@ -200,6 +236,7 @@ def generate_level(level):
     global stair, prize
     new_player, x, y = None, None, None
     line_doors = []
+    ind_mine = 0
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '.':
@@ -208,14 +245,14 @@ def generate_level(level):
                 Textures('wall', x, y)
             elif level[y][x] == '@':
                 Textures('floor', x, y)
-                new_player = Player(load_image('player_right.png'), 4, 1, x * 35, y * 32)
+                new_player = Player(load_image('player_right.png'), 4, 1, x * 33, y * 32)
             elif level[y][x] in ('s', 'w'):
                 name = 'speed' if level[y][x] == 's' else 'wellness'
                 Textures('floor', x, y)
                 list_potions.append((name, Potion(name, x, y)))
             elif level[y][x] == 't':
                 Textures('floor', x, y)
-                list_thorns.append(Thorn(load_image('thorns.jpg'), 4, 1, x * 32, y * 32))
+                list_thorns.append(Thorn(load_image('thorns.jpg'), 4, 1, x * 33, y * 32))
             elif level[y][x] == 'u':
                 Textures('floor', x, y)
                 stair = Stair(x, y)
@@ -243,6 +280,10 @@ def generate_level(level):
             elif level[y][x] == 'p':
                 Textures('floor', x, y)
                 prize = Prize(x, y)
+            elif level[y][x] == 'm':
+                Textures('floor', x, y)
+                list_mines.append(Mine(ind_mine, x, y))
+                ind_mine += 1
     return new_player, x, y
 
 
@@ -259,6 +300,7 @@ def load_level(filename):
 
 
 level = load_level('first_level.txt')
+cur_level = 0
 player, level_x, level_y = generate_level(level)
 cur_mod = 'r'
 step = 4
@@ -320,6 +362,8 @@ def check_mask(arr, group=None, mode=None, access=True):
                 arr[i].rect = arr[i].image.get_rect().move(arr[i].start_coord)
             elif mode == 'thorn':
                 return arr[i]
+            elif mode == 'mine':
+                return arr[i], i
             else:
                 group.remove(arr[i])
             return True
@@ -339,6 +383,7 @@ def clear_sprites(group):
 pygame.init()
 start_screen()
 clock = pygame.time.Clock()
+streams = []
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -396,6 +441,10 @@ while True:
             step = 8
             Timer = threading.Timer(15, back)
             Timer.start()
+            streams.append(Timer)
+            if len(streams) > 1:
+                streams[0].cancel()
+                del streams[0]
         else:
             health = 100
             player.health = 100
@@ -415,6 +464,13 @@ while True:
                 player.health = health
             list_doors[i][ans - 1].open_door()
             list_questions_answers[i][-1] = None
+    mine = check_mask(list_mines, mine_group, 'mine')
+    if not (isinstance(mine, bool)):
+        mine, ind = mine
+        mine.activate(8, 2)
+        del list_mines[ind]
+        health -= 5
+        player.health = health
     screen.fill(pygame.Color((84, 55, 64)))
     if stair:
         if pygame.sprite.collide_mask(player, stair):
@@ -426,6 +482,11 @@ while True:
             list_thorns = []
             level = load_level(list_level[cur_level])
             player, level_x, level_y = generate_level(level)
+            if cur_level == 2:
+                player = Player(load_image('player_down.png'), 4, 1, 645, 32)
+                cur_mod = 'd'
+                stair = None
+            player.health = health
     if prize:
         if pygame.sprite.collide_mask(player, prize):
             player.kill()
@@ -444,16 +505,22 @@ while True:
     texture_group.draw(screen)
     potion_group.draw(screen)
     thorn_group.draw(screen)
+    door_group.draw(screen)
     player_group.draw(screen)
     stair_group.draw(screen)
-    door_group.draw(screen)
     arrow_group.draw(screen)
+    mine_group.draw(screen)
     player.screen = screen
     all_sprites.update()
     if action:
         font = pygame.font.Font(None, 15)
         string_rendered = font.render(str(player.health), 1, pygame.Color('black'))
-        screen.blit(string_rendered, (player.rect.x + 5, player.rect.y - 10))
+        if health == 100:
+            screen.blit(string_rendered, (player.rect.x + 5, player.rect.y - 13))
+        elif len(str(health)) == 2:
+            screen.blit(string_rendered, (player.rect.x + 8, player.rect.y - 13))
+        else:
+            screen.blit(string_rendered, (player.rect.x + 12, player.rect.y - 13))
     elif not action:
         pygame.draw.rect(screen, pygame.Color('black'), (120, 200, 460, 110), 0)
         font = pygame.font.Font(None, 80)
