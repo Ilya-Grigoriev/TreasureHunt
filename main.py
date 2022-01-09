@@ -245,14 +245,14 @@ def generate_level(level):
                 Textures('wall', x, y)
             elif level[y][x] == '@':
                 Textures('floor', x, y)
-                new_player = Player(load_image('player_right.png'), 4, 1, x * 32.1, y * 32)
+                new_player = Player(load_image('player_right.png'), 4, 1, x * 33, y * 32)
             elif level[y][x] in ('s', 'w'):
                 name = 'speed' if level[y][x] == 's' else 'wellness'
                 Textures('floor', x, y)
                 list_potions.append((name, Potion(name, x, y)))
             elif level[y][x] == 't':
                 Textures('floor', x, y)
-                list_thorns.append(Thorn(load_image('thorns.jpg'), 4, 1, x * 32.1, y * 32))
+                list_thorns.append(Thorn(load_image('thorns.jpg'), 4, 1, x * 33, y * 32))
             elif level[y][x] == 'u':
                 Textures('floor', x, y)
                 stair = Stair(x, y)
@@ -299,11 +299,13 @@ def load_level(filename):
         terminate()
 
 
-level = load_level('third_level.txt')
-cur_level = 2
+level = load_level('first_level.txt')
+cur_level = 0
 player, level_x, level_y = generate_level(level)
-player.rect.x = 50
-player.rect.y = 450
+# player.rect.x = 50
+# player.rect.y = 450
+# player.rect.x = 600
+# player.rect.y = 35
 cur_mod = 'r'
 step = 4
 health = 100
@@ -484,6 +486,10 @@ while True:
             list_thorns = []
             level = load_level(list_level[cur_level])
             player, level_x, level_y = generate_level(level)
+            if cur_level == 2:
+                player = Player(load_image('player_down.png'), 4, 1, 645, 32)
+                cur_mod = 'd'
+                stair = None
             player.health = health
     if prize:
         if pygame.sprite.collide_mask(player, prize):
