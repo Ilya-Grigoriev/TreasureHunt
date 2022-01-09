@@ -302,10 +302,6 @@ def load_level(filename):
 level = load_level('first_level.txt')
 cur_level = 0
 player, level_x, level_y = generate_level(level)
-# player.rect.x = 50
-# player.rect.y = 450
-# player.rect.x = 600
-# player.rect.y = 35
 cur_mod = 'r'
 step = 4
 health = 100
