@@ -7,6 +7,8 @@ import pygame
 size = width, height = 700, 500
 screen = pygame.display.set_mode(size)
 player = None
+new_game = False
+access = False
 FPS = 5
 list_level = ['first_level.txt', 'second_level.txt', 'third_level.txt']
 first_quest = [('Сколько полос на флаге США?', (190, 70), 30), ('13', (100, 70), 30), ('12', (580, 70), 30), 1]
@@ -392,6 +394,10 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             terminate()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            x, y = event.pos
+            if 0 <= x <= 200 and 460 <= y <= 500:
+                access = True
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
         player.rect.x -= step
@@ -438,6 +444,7 @@ while True:
         else:
             player.rect.y -= step
     potion = check_mask(list_potions, potion_group, 'potion')
+
     if not (isinstance(potion, bool)):
         ind, name = potion
         del list_potions[ind]
@@ -476,6 +483,34 @@ while True:
         health -= 5
         player.health = health
     screen.fill(pygame.Color((84, 55, 64)))
+    if access:
+        all_sprites = pygame.sprite.Group()
+        floor_group = pygame.sprite.Group()
+        texture_group = pygame.sprite.Group()
+        potion_group = pygame.sprite.Group()
+        thorn_group = pygame.sprite.Group()
+        player_group = pygame.sprite.Group()
+        stair_group = pygame.sprite.Group()
+        door_group = pygame.sprite.Group()
+        arrow_group = pygame.sprite.Group()
+        mine_group = pygame.sprite.Group()
+        list_potions = []
+        list_thorns = []
+        list_doors = []
+        list_arrows = []
+        list_mines = []
+        stair = None
+        prize = None
+        end = False
+        action = True
+        new_game = False
+        access = False
+        level = load_level('first_level.txt')
+        cur_level = 0
+        player, level_x, level_y = generate_level(level)
+        cur_mod = 'r'
+        step = 4
+        health = 100
     if stair:
         if pygame.sprite.collide_mask(player, stair):
             cur_level += 1
@@ -530,6 +565,11 @@ while True:
         font = pygame.font.Font(None, 80)
         string_rendered = font.render('Вы проиграли!', 1, pygame.Color('chocolate1'))
         screen.blit(string_rendered, (145, 225))
+        pygame.draw.rect(screen, pygame.Color('black'), (0, 460, 200, 40), 0)
+        font = pygame.font.Font(None, 30)
+        string_rendered2 = font.render('Начать новую игру', 1, pygame.Color('chocolate1'))
+        screen.blit(string_rendered2, (5, 470))
+        new_game = True
     if cur_level == 1:
         for i in list_questions_answers:
             quest_ans, correct = i[:-1], i[-1]
