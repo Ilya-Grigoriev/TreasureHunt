@@ -301,13 +301,13 @@ def load_level(filename):
         terminate()
 
 
-level = load_level('first_level.txt')
-cur_level = 0
+level = load_level('second_level.txt')
+cur_level = 1
 player, level_x, level_y = generate_level(level)
 # player.rect.x = 50
 # player.rect.y = 450
-# player.rect.x = 600
-# player.rect.y = 35
+player.rect.x = 600
+player.rect.y = 35
 cur_mod = 'r'
 step = 4
 health = 100
@@ -341,17 +341,26 @@ def start_screen():
 
 
 def end_screen():
-    fon = pygame.transform.scale(load_image('end_screen.png'), size)
+    global access
+    fon = pygame.transform.scale(load_image('end_screen.png'), (width, height))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 80)
     string_rendered = font.render('Поздравляю', 1, pygame.Color('chocolate1'))
     screen.blit(string_rendered, (170, 190))
     string_rendered = font.render('Вас с победой!', 1, pygame.Color('chocolate1'))
     screen.blit(string_rendered, (140, 250))
+    pygame.draw.rect(screen, pygame.Color('black'), (0, 460, 200, 40), 0)
+    font = pygame.font.Font(None, 30)
+    string_rendered2 = font.render('Начать новую игру', 1, pygame.Color('chocolate1'))
+    screen.blit(string_rendered2, (5, 470))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = event.pos
+                if 0 <= x <= 200 and 460 <= y <= 500:
+                    return
         pygame.display.flip()
 
 
@@ -444,7 +453,6 @@ while True:
         else:
             player.rect.y -= step
     potion = check_mask(list_potions, potion_group, 'potion')
-
     if not (isinstance(potion, bool)):
         ind, name = potion
         del list_potions[ind]
@@ -533,8 +541,8 @@ while True:
                 clear_sprites(i)
             list_potions = []
             list_thorns = []
-            end = True
-            break
+            end_screen()
+            access = True
     if health <= 0:
         all_sprites.remove(player)
         player_group.remove(player)
@@ -578,8 +586,10 @@ while True:
                 font = pygame.font.Font(None, size)
                 string_rendered = font.render(text, 1, pygame.Color('black'))
                 screen.blit(string_rendered, coord)
+    if cur_level == 2:
+        player.rect.x = 550
+        player.rect.y = 450
+        cur_level = 4
     pygame.display.flip()
     pygame.event.pump()
     clock.tick(FPS)
-if end:
-    end_screen()
