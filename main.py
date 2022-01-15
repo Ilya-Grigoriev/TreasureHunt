@@ -4,6 +4,7 @@ import sys
 import threading
 
 size = width, height = 700, 500
+tile_width = tile_height = 32
 screen = pygame.display.set_mode(size)
 new_game = False
 access = False
@@ -203,9 +204,6 @@ class Prize(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             (tile_width * pos_x) - 3, tile_height * pos_y)
         self.mask = pygame.mask.from_surface(self.image)
-
-
-tile_width = tile_height = 32
 
 
 class Player(pygame.sprite.Sprite):
