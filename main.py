@@ -5,10 +5,10 @@ import threading
 
 size = width, height = 700, 500
 tile_width = tile_height = 32
-screen = pygame.display.set_mode(size)
+FPS = 5
 new_game = False
 access = False
-FPS = 5
+screen = pygame.display.set_mode(size)
 list_level = ['first_level.txt', 'second_level.txt', 'third_level.txt']
 first_quest = [('Сколько полос на флаге США?', (190, 70), 30), ('13', (100, 70), 30), ('12', (580, 70), 30), 1]
 second_quest = [('Сколько километров в одной миле?', (170, 135), 30), ('1.56', (85, 135), 30),
