@@ -252,7 +252,7 @@ def generate_level(level):
                 list_potions.append((name, Potion(name, x, y)))
             elif level[y][x] == 't':
                 Textures('floor', x, y)
-                list_thorns.append(Thorn(load_image('thorns.jpg'), 4, 1, x * 33, y * 32))
+                list_thorns.append(Thorn(load_image('thorns.jpg'), 4, 1, x * 32.5, y * 32))
             elif level[y][x] == 'u':
                 Textures('floor', x, y)
                 stair = Stair(x, y)
