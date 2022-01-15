@@ -57,6 +57,7 @@ list_thorns = []
 list_doors = []
 list_arrows = []
 list_mines = []
+streams = []
 stair = None
 prize = None
 end = False
@@ -390,7 +391,6 @@ def clear_sprites(group):
 pygame.init()
 start_screen()
 clock = pygame.time.Clock()
-streams = []
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
