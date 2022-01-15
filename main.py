@@ -1,12 +1,10 @@
 import os
+import pygame
 import sys
 import threading
 
-import pygame
-
 size = width, height = 700, 500
 screen = pygame.display.set_mode(size)
-player = None
 new_game = False
 access = False
 FPS = 5
@@ -64,9 +62,9 @@ end = False
 action = True
 
 texture_images = {
-    'wall': load_image('wall5.jpg'),
-    'floor': load_image('floor2.png'),
-    'potion_speed': load_image('potion_speed2.png'),
+    'wall': load_image('wall.jpg'),
+    'floor': load_image('floor.png'),
+    'potion_speed': load_image('potion_speed.png'),
     'potion_wellness': load_image('potion_wellness.png'),
     'thorns': load_image('thorns.jpg'),
     'stair': load_image('stair.jpg'),
