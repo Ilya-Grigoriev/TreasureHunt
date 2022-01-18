@@ -457,7 +457,10 @@ while True:
         ind, name = potion
         del list_potions[ind]
         if name == 'speed':
-            step = 16
+            if cur_level == 1:
+                step = 9
+            else:
+                step = 16
             Timer = threading.Timer(10, back)
             Timer.start()
             streams.append(Timer)
@@ -561,7 +564,7 @@ while True:
     all_sprites.update()
     if action:
         font = pygame.font.Font(None, 15)
-        string_rendered = font.render(str(player.health), 1, pygame.Color('black'))
+        string_rendered = font.render(str(player.health), 1, pygame.Color('white'))
         if health == 100:
             screen.blit(string_rendered, (player.rect.x + 5, player.rect.y - 13))
         elif len(str(health)) == 2:
