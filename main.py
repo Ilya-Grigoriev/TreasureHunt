@@ -302,7 +302,7 @@ level = load_level('first_level.txt')
 cur_level = 0
 player, level_x, level_y = generate_level(level)
 cur_mod = 'r'
-step = 4
+step = 6
 health = 100
 
 
@@ -315,7 +315,7 @@ def start_screen():
     string_rendered = font.render('сокровищ', 1, pygame.Color('chocolate1'))
     screen.blit(string_rendered, (210, 215))
     font = pygame.font.Font(None, 20)
-    string_rendered = font.render('Голубой флакон - зелье скорости на 15 секунд', 1, pygame.Color('chocolate1'))
+    string_rendered = font.render('Голубой флакон - зелье скорости на 10 секунд', 1, pygame.Color('chocolate1'))
     screen.blit(string_rendered, (75, 390))
     string_rendered = font.render('Красный флакон - зелье здоровья', 1, pygame.Color('chocolate1'))
     screen.blit(string_rendered, (75, 410))
@@ -327,6 +327,9 @@ def start_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    terminate()
             elif event.type == pygame.KEYDOWN or \
                     event.type == pygame.MOUSEBUTTONDOWN:
                 return
@@ -350,6 +353,9 @@ def end_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    terminate()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
                 if 0 <= x <= 200 and 460 <= y <= 500:
@@ -380,7 +386,7 @@ def check_mask(arr, group=None, mode=None, access=True):
 
 def back():
     global step
-    step = 4
+    step = 6
 
 
 def clear_sprites(group):
@@ -400,6 +406,8 @@ while True:
             if 0 <= x <= 200 and 460 <= y <= 500:
                 access = True
     keys = pygame.key.get_pressed()
+    if keys[pygame.K_ESCAPE]:
+        terminate()
     if keys[pygame.K_LEFT]:
         player.rect.x -= step
         if not pygame.sprite.spritecollideany(player, texture_group):
@@ -449,8 +457,11 @@ while True:
         ind, name = potion
         del list_potions[ind]
         if name == 'speed':
-            step = 8
-            Timer = threading.Timer(15, back)
+            if cur_level == 1:
+                step = 9
+            else:
+                step = 16
+            Timer = threading.Timer(10, back)
             Timer.start()
             streams.append(Timer)
             if len(streams) > 1:
@@ -462,10 +473,10 @@ while True:
     thorn = check_mask(list_thorns, mode='thorn')
     if not (isinstance(thorn, bool)):
         if (thorn.cur_frame % 4) == 1:
-            health -= 1
+            health -= 2
             player.health = health
     if check_mask(list_arrows, arrow_group, 'arrow', action):
-        health -= 3
+        health -= 5
         player.health = health
     for i in range(len(list_doors)):
         ans = check_mask(list_doors[i], door_group, 'door')
@@ -509,7 +520,7 @@ while True:
         cur_level = 0
         player, level_x, level_y = generate_level(level)
         cur_mod = 'r'
-        step = 4
+        step = 6
         health = 100
     if stair:
         if pygame.sprite.collide_mask(player, stair):
@@ -553,7 +564,7 @@ while True:
     all_sprites.update()
     if action:
         font = pygame.font.Font(None, 15)
-        string_rendered = font.render(str(player.health), 1, pygame.Color('black'))
+        string_rendered = font.render(str(player.health), 1, pygame.Color('white'))
         if health == 100:
             screen.blit(string_rendered, (player.rect.x + 5, player.rect.y - 13))
         elif len(str(health)) == 2:
