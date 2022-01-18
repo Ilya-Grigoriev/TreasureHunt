@@ -1,15 +1,13 @@
 import os
+import pygame
 import sys
 import threading
 
-import pygame
-
 size = width, height = 700, 500
-screen = pygame.display.set_mode(size)
-player = None
+tile_width = tile_height = 32
+FPS = 5
 new_game = False
 access = False
-FPS = 5
 list_level = ['first_level.txt', 'second_level.txt', 'third_level.txt']
 first_quest = [('Сколько полос на флаге США?', (190, 70), 30), ('13', (100, 70), 30), ('12', (580, 70), 30), 1]
 second_quest = [('Сколько километров в одной миле?', (170, 135), 30), ('1.56', (85, 135), 30),
@@ -20,6 +18,7 @@ fifth_quest = [('Сколько элементов в периодической
                ('116', (580, 327), 30), 1]
 sixth_quest = [('Сколько часовых поясов в России?', (170, 392), 30), ('10', (105, 392), 30), ('11', (580, 392), 30), 2]
 list_questions_answers = [first_quest, second_quest, third_quest, fourth_quest, fifth_quest, sixth_quest]
+screen = pygame.display.set_mode(size)
 
 
 def terminate():
@@ -58,15 +57,16 @@ list_thorns = []
 list_doors = []
 list_arrows = []
 list_mines = []
+streams = []
 stair = None
 prize = None
 end = False
 action = True
 
 texture_images = {
-    'wall': load_image('wall5.jpg'),
-    'floor': load_image('floor2.png'),
-    'potion_speed': load_image('potion_speed2.png'),
+    'wall': load_image('wall.jpg'),
+    'floor': load_image('floor.png'),
+    'potion_speed': load_image('potion_speed.png'),
     'potion_wellness': load_image('potion_wellness.png'),
     'thorns': load_image('thorns.jpg'),
     'stair': load_image('stair.jpg'),
@@ -207,9 +207,6 @@ class Prize(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
-tile_width = tile_height = 32
-
-
 class Player(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(player_group, all_sprites)
@@ -254,7 +251,7 @@ def generate_level(level):
                 list_potions.append((name, Potion(name, x, y)))
             elif level[y][x] == 't':
                 Textures('floor', x, y)
-                list_thorns.append(Thorn(load_image('thorns.jpg'), 4, 1, x * 33, y * 32))
+                list_thorns.append(Thorn(load_image('thorns.jpg'), 4, 1, x * 32.5, y * 32))
             elif level[y][x] == 'u':
                 Textures('floor', x, y)
                 stair = Stair(x, y)
@@ -301,15 +298,11 @@ def load_level(filename):
         terminate()
 
 
-level = load_level('second_level.txt')
-cur_level = 1
+level = load_level('first_level.txt')
+cur_level = 0
 player, level_x, level_y = generate_level(level)
-# player.rect.x = 50
-# player.rect.y = 450
-player.rect.x = 600
-player.rect.y = 35
 cur_mod = 'r'
-step = 4
+step = 6
 health = 100
 
 
@@ -334,6 +327,9 @@ def start_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    terminate()
             elif event.type == pygame.KEYDOWN or \
                     event.type == pygame.MOUSEBUTTONDOWN:
                 return
@@ -357,6 +353,9 @@ def end_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    terminate()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
                 if 0 <= x <= 200 and 460 <= y <= 500:
@@ -387,7 +386,7 @@ def check_mask(arr, group=None, mode=None, access=True):
 
 def back():
     global step
-    step = 4
+    step = 6
 
 
 def clear_sprites(group):
@@ -398,7 +397,6 @@ def clear_sprites(group):
 pygame.init()
 start_screen()
 clock = pygame.time.Clock()
-streams = []
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -408,6 +406,8 @@ while True:
             if 0 <= x <= 200 and 460 <= y <= 500:
                 access = True
     keys = pygame.key.get_pressed()
+    if keys[pygame.K_ESCAPE]:
+        terminate()
     if keys[pygame.K_LEFT]:
         player.rect.x -= step
         if not pygame.sprite.spritecollideany(player, texture_group):
@@ -457,7 +457,7 @@ while True:
         ind, name = potion
         del list_potions[ind]
         if name == 'speed':
-            step = 8
+            step = 12
             Timer = threading.Timer(15, back)
             Timer.start()
             streams.append(Timer)
@@ -586,10 +586,6 @@ while True:
                 font = pygame.font.Font(None, size)
                 string_rendered = font.render(text, 1, pygame.Color('black'))
                 screen.blit(string_rendered, coord)
-    if cur_level == 2:
-        player.rect.x = 550
-        player.rect.y = 450
-        cur_level = 4
     pygame.display.flip()
     pygame.event.pump()
     clock.tick(FPS)
