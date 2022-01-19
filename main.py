@@ -298,8 +298,8 @@ def load_level(filename):
         terminate()
 
 
-level = load_level('first_level.txt')
 cur_level = 0
+level = load_level('first_level.txt')
 player, level_x, level_y = generate_level(level)
 cur_mod = 'r'
 step = 6
